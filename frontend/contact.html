@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================
+         DOCUMENT SETUP
+    ========================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+
+    <!-- =========================================
+         SEO
+    ========================================== -->
+
+    <meta name="description"
+          content="Contact Atul Mahaiskar — Python, AI and Software Developer.">
+
+    <meta name="author"
+          content="Atul Mahaiskar">
+
+    <meta name="keywords"
+          content="Atul Mahaiskar, Contact, Python Developer, AI Developer, Software Developer">
+
+
+    <title>Contact | Atul Mahaiskar</title>
+
+
+    <!-- =========================================
+         GOOGLE FONT
+    ========================================== -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+
+    <!-- =========================================
+         FONT AWESOME
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+    <!-- =========================================
+         MAIN CSS
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="css/style.css">
+
+    <link rel="stylesheet"
+          href="css/responsive.css">
+
+
+    <style>
+
+        /* =========================================
+           CONTACT PAGE
+        ========================================== */
+
+        .contact-page {
+            width: 100%;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 80px 30px 100px;
+        }
+
+
+        /* =========================================
+           HEADER
+        ========================================== */
+
+        .contact-header {
+            max-width: 800px;
+            margin-bottom: 55px;
+        }
+
+        .contact-label {
+            color: #85858e;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .contact-header h1 {
+            font-size: clamp(48px, 6vw, 76px);
+            line-height: 1.05;
+            letter-spacing: -3px;
+            margin-bottom: 25px;
+        }
+
+        .contact-header h1 span {
+            color: #a9a9ff;
+            text-shadow: 0 0 30px rgba(120, 120, 255, 0.12);
+        }
+
+        .contact-header p {
+            max-width: 680px;
+            color: #9b9ba5;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+
+        /* =========================================
+           CONTACT INFORMATION
+        ========================================== */
+
+        .contact-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 35px;
+        }
+
+        .contact-info-card {
+            position: relative;
+            padding: 25px;
+            min-height: 155px;
+
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+
+            background: rgba(255,255,255,0.035);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+
+            overflow: hidden;
+
+            transition: 0.3s ease;
+        }
+
+        .contact-info-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.17);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .contact-icon {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: rgba(255,255,255,0.06);
+
+            color: #ffffff;
+
+            margin-bottom: 18px;
+        }
+
+        .contact-info-card h3 {
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .contact-info-card a,
+        .contact-info-card p {
+            margin: 0;
+
+            color: #85858e;
+
+            font-size: 12px;
+            line-height: 1.6;
+
+            text-decoration: none;
+
+            word-break: break-word;
+        }
+
+        .contact-info-card a:hover {
+            color: #ffffff;
+        }
+
+
+        /* =========================================
+           MAIN GRID
+        ========================================== */
+
+        .contact-grid {
+            display: grid;
+
+            grid-template-columns:
+                0.9fr
+                1.1fr;
+
+            gap: 25px;
+        }
+
+
+        /* =========================================
+           GLASS CARD
+        ========================================== */
+
+        .contact-card {
+            position: relative;
+
+            padding: 32px;
+
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+
+            background: rgba(255,255,255,0.035);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+
+            overflow: hidden;
+        }
+
+        .contact-card h2 {
+            position: relative;
+
+            font-size: 22px;
+
+            margin-bottom: 10px;
+
+            letter-spacing: -0.5px;
+        }
+
+        .contact-card h2 i {
+            color: #a9a9ff;
+            font-size: 17px;
+            margin-right: 9px;
+        }
+
+        .contact-card-description {
+            color: #85858e;
+
+            font-size: 13px;
+
+            line-height: 1.8;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================================
+           SOCIAL LINKS
+        ========================================== */
+
+        .social-title {
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            margin-bottom: 12px;
+        }
+
+        .contact-social {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .contact-social a {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid rgba(255,255,255,0.08);
+
+            border-radius: 11px;
+
+            background: rgba(255,255,255,0.03);
+
+            color: #9999a3;
+
+            text-decoration: none;
+
+            transition: 0.3s ease;
+        }
+
+        .contact-social a:hover {
+            color: #ffffff;
+
+            border-color: rgba(255,255,255,0.22);
+
+            background: rgba(255,255,255,0.08);
+
+            transform: translateY(-4px);
+        }
+
+
+        /* =========================================
+           FORM
+        ========================================== */
+
+        .contact-form {
+            display: grid;
+            gap: 17px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: #b0b0b8;
+
+            font-size: 11px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+
+            box-sizing: border-box;
+
+            border: 1px solid rgba(255,255,255,0.09);
+
+            border-radius: 11px;
+
+            background: rgba(255,255,255,0.035);
+
+            color: #ffffff;
+
+            font-family: "Inter", sans-serif;
+
+            font-size: 13px;
+
+            outline: none;
+
+            transition: 0.3s ease;
+        }
+
+        .form-group input {
+            height: 48px;
+
+            padding: 0 15px;
+        }
+
+        .form-group textarea {
+            min-height: 135px;
+
+            resize: vertical;
+
+            padding: 14px 15px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #5f5f68;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: rgba(169,169,255,0.45);
+
+            background: rgba(255,255,255,0.05);
+
+            box-shadow:
+                0 0 0 3px rgba(130,130,255,0.06);
+        }
+
+        .send-message-btn {
+            width: 100%;
+
+            border: none;
+
+            cursor: pointer;
+
+            font-family: "Inter", sans-serif;
+
+            margin-top: 3px;
+        }
+
+
+        /* =========================================
+           FORM STATUS
+        ========================================== */
+
+        #formStatus {
+            display: none;
+
+            padding: 13px 15px;
+
+            border-radius: 10px;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+
+            margin-top: 3px;
+        }
+
+        #formStatus.success {
+            display: block;
+
+            background: rgba(40,200,120,0.08);
+
+            border: 1px solid rgba(40,200,120,0.20);
+
+            color: #75e0a9;
+        }
+
+        #formStatus.error {
+            display: block;
+
+            background: rgba(255,70,70,0.08);
+
+            border: 1px solid rgba(255,70,70,0.20);
+
+            color: #ff9999;
+        }
+
+
+        /* =========================================
+           RESUME
+        ========================================== */
+
+        .resume-section {
+            margin-top: 30px;
+
+            padding: 30px 32px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 25px;
+
+            border: 1px solid rgba(255,255,255,0.09);
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,0.055),
+                    rgba(255,255,255,0.02)
+                );
+
+            backdrop-filter: blur(15px);
+        }
+
+        .resume-content h2 {
+            font-size: 20px;
+            margin-bottom: 7px;
+        }
+
+        .resume-content h2 i {
+            color: #a9a9ff;
+            margin-right: 8px;
+        }
+
+        .resume-content p {
+            color: #777780;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+
+        /* =========================================
+           FOOTER
+        ========================================== */
+
+        .contact-footer {
+            text-align: center;
+
+            color: #55555e;
+
+            font-size: 11px;
+
+            margin-top: 55px;
+        }
+
+
+        /* =========================================
+           TABLET
+        ========================================== */
+
+        @media (max-width: 900px) {
+
+            .contact-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================== */
+
+        @media (max-width: 550px) {
+
+            .contact-page {
+                padding: 50px 18px 65px;
+            }
+
+            .contact-header h1 {
+                font-size: 44px;
+                letter-spacing: -2px;
+            }
+
+            .contact-header p {
+                font-size: 14px;
+            }
+
+            .contact-card {
+                padding: 24px;
+            }
+
+            .contact-info-card {
+                padding: 22px;
+            }
+
+            .resume-section {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 25px;
+            }
+
+            .resume-button {
+                width: 100%;
+            }
+
+            .resume-button .btn {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         BACKGROUND
+    ========================================== -->
+
+    <div class="background-glow"></div>
+
+
+    <!-- =========================================
+         NAVIGATION
+    ========================================== -->
+
+    <header class="navbar">
+
+        <a href="index.html"
+           class="brand"
+           aria-label="Atul Mahaiskar - Home">
+
+            <span class="brand-name">
+
+                <span class="brand-atul">
+                    ATUL
+                </span>
+
+                <span class="brand-space"></span>
+
+                <span class="brand-mahaiskar">
+                    MAHAISKAR
+                </span>
+
+            </span>
+
+            <span class="brand-line"></span>
+
+        </a>
+
+
+        <nav class="nav-links"
+             aria-label="Main navigation">
+
+            <a href="about.html">
+                About
+            </a>
+
+            <a href="skills.html">
+                Skills
+            </a>
+
+            <a href="projects.html">
+                Projects
+            </a>
+
+            <a href="resume.html">
+                Resume
+            </a>
+
+            <a href="contact.html"
+               class="nav-contact active">
+                Contact
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="contact-page">
+
+
+        <!-- =====================================
+             HEADER
+        ====================================== -->
+
+        <section class="contact-header">
+
+            <p class="contact-label">
+                GET IN TOUCH
+            </p>
+
+            <h1>
+                Let's build
+                <span>something.</span>
+            </h1>
+
+            <p>
+                Have a project, opportunity or idea in mind?
+                Send me a message or connect with me through
+                the details below.
+            </p>
+
+        </section>
+
+
+        <!-- =====================================
+             CONTACT INFORMATION
+        ====================================== -->
+
+        <section class="contact-info-grid">
+
+
+            <!-- FULL NAME -->
+
+            <article class="contact-info-card">
+
+                <div class="contact-icon">
+
+                    <i class="fa-solid fa-user"></i>
+
+                </div>
+
+                <h3>
+                  Name
+                </h3>
+
+                <p>
+                    Atul Mahaiskar
+                </p>
+
+            </article>
+
+
+            <!-- EMAIL -->
+
+            <article class="contact-info-card">
+
+                <div class="contact-icon">
+
+                    <i class="fa-solid fa-envelope"></i>
+
+                </div>
+
+                <h3>
+                    Email
+                </h3>
+
+                <a href="mailto:your-email@example.com">
+                    atulmhaiskar7@gmail.com
+                </a>
+
+            </article>
+
+
+            <!-- WHATSAPP -->
+
+            <article class="contact-info-card">
+
+                <div class="contact-icon">
+
+                    <i class="fa-brands fa-whatsapp"></i>
+
+                </div>
+
+                <h3>
+                    WhatsApp
+                </h3>
+
+                <a href="https://wa.me/91XXXXXXXXXX"
+                   target="_blank"
+                   rel="noopener noreferrer">
+
+                    +91 7875707237
+
+                </a>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             CONTACT GRID
+        ====================================== -->
+
+        <section class="contact-grid">
+
+
+            <!-- =================================
+                 SOCIAL
+            ================================== -->
+
+            <article class="contact-card">
+
+                <h2>
+
+                    <i class="fa-solid fa-share-nodes"></i>
+
+                    Connect With Me
+
+                </h2>
+
+
+                <p class="contact-card-description">
+
+                    Follow my work, projects and
+                    professional updates on my
+                    social platforms.
+
+                </p>
+
+
+                <p class="social-title">
+                    SOCIAL LINKS
+                </p>
+
+
+                <div class="contact-social">
+
+
+                    <!-- GitHub -->
+
+                    <a href="https://github.com/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="GitHub">
+
+                        <i class="fa-brands fa-github"></i>
+
+                    </a>
+
+
+                    <!-- LinkedIn -->
+
+                    <a href="https://www.linkedin.com/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="LinkedIn">
+
+                        <i class="fa-brands fa-linkedin-in"></i>
+
+                    </a>
+
+
+                    <!-- Instagram -->
+
+                    <a href="https://www.instagram.com/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="Instagram">
+
+                        <i class="fa-brands fa-instagram"></i>
+
+                    </a>
+
+
+                    <!-- X -->
+
+                    <a href="https://x.com/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="X">
+
+                        <i class="fa-brands fa-x-twitter"></i>
+
+                    </a>
+
+
+                </div>
+
+            </article>
+
+
+            <!-- =================================
+                 SEND MESSAGE
+            ================================== -->
+
+            <article class="contact-card">
+
+                <h2>
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                    Send Message
+
+                </h2>
+
+
+                <p class="contact-card-description">
+
+                    Fill in the form below.
+                    Your message will be saved in
+                    the portfolio database and an
+                    email notification will be sent
+                    to the admin email.
+
+                </p>
+
+
+                <!-- FORM -->
+
+                <form id="contactForm"
+                      class="contact-form">
+
+
+                    <!-- NAME -->
+
+                    <div class="form-group">
+
+                        <label for="name">
+                            YOUR NAME
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter your name"
+                            autocomplete="name"
+                            maxlength="100"
+                            required>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            YOUR EMAIL
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            autocomplete="email"
+                            required>
+
+                    </div>
+
+
+                    <!-- MESSAGE -->
+
+                    <div class="form-group">
+
+                        <label for="message">
+                            YOUR MESSAGE
+                        </label>
+
+                        <textarea
+                            id="message"
+                            name="message"
+                            placeholder="Write your message..."
+                            maxlength="5000"
+                            required></textarea>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div id="formStatus"></div>
+
+
+                    <!-- SEND -->
+
+                    <button
+                        type="submit"
+                        id="sendMessageBtn"
+                        class="btn btn-primary send-message-btn">
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        <span>
+                            Send Message
+                        </span>
+
+                    </button>
+
+
+                </form>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             RESUME
+        ====================================== -->
+
+        <section class="resume-section">
+
+
+            <div class="resume-content">
+
+                <h2>
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                    Want to know more about me?
+
+                </h2>
+
+                <p>
+
+                    View my resume for my skills,
+                    education, projects and
+                    professional experience.
+
+                </p>
+
+            </div>
+
+
+            <div class="resume-button">
+
+                <a href="assets/Atul-Mahaiskar-Resume.pdf"
+                   class="btn btn-secondary"
+                   target="_blank"
+                   rel="noopener noreferrer">
+
+                    <i class="fa-solid fa-file-arrow-down"></i>
+
+                    &nbsp; View Resume
+
+                </a>
+
+            </div>
+
+
+        </section>
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="js/main.js"></script>
+
+
+    <!-- =========================================
+         CONTACT FORM API
+    ========================================== -->
+
+    <script>
+
+        const contactForm =
+            document.getElementById("contactForm");
+
+        const formStatus =
+            document.getElementById("formStatus");
+
+        const sendMessageBtn =
+            document.getElementById("sendMessageBtn");
+
+
+        contactForm.addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                /* ---------------------------------
+                   GET FORM DATA
+                --------------------------------- */
+
+                const name =
+                    document.getElementById("name")
+                    .value
+                    .trim();
+
+                const email =
+                    document.getElementById("email")
+                    .value
+                    .trim();
+
+                const message =
+                    document.getElementById("message")
+                    .value
+                    .trim();
+
+
+                /* ---------------------------------
+                   BASIC VALIDATION
+                --------------------------------- */
+
+                if (!name || !email || !message) {
+
+                    showStatus(
+                        "Please fill in all fields.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                /* ---------------------------------
+                   BUTTON LOADING
+                --------------------------------- */
+
+                sendMessageBtn.disabled = true;
+
+                sendMessageBtn.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Sending...</span>
+                `;
+
+
+                showStatus(
+                    "",
+                    ""
+                );
+
+
+                /* ---------------------------------
+                   SEND TO FLASK
+                --------------------------------- */
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "http://127.0.0.1:9000/api/contact",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body: JSON.stringify({
+
+                                    name: name,
+
+                                    email: email,
+
+                                    message: message
+
+                                })
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    /* -----------------------------
+                       SUCCESS
+                    ----------------------------- */
+
+                    if (
+                        response.ok &&
+                        result.success
+                    ) {
+
+                        showStatus(
+                            "✓ Your message was sent successfully. Thank you for contacting me!",
+                            "success"
+                        );
+
+
+                        contactForm.reset();
+
+                    }
+
+
+                    /* -----------------------------
+                       ERROR FROM FLASK
+                    ----------------------------- */
+
+                    else {
+
+                        showStatus(
+                            result.message ||
+                            "Unable to send your message.",
+                            "error"
+                        );
+
+                    }
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Contact API Error:",
+                        error
+                    );
+
+
+                    showStatus(
+                        "Unable to connect to the backend. Make sure Flask is running on port 9000.",
+                        "error"
+                    );
+
+                }
+
+
+                /* ---------------------------------
+                   RESTORE BUTTON
+                --------------------------------- */
+
+                sendMessageBtn.disabled = false;
+
+                sendMessageBtn.innerHTML = `
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Send Message</span>
+                `;
+
+            }
+        );
+
+
+        /* =========================================
+           STATUS FUNCTION
+        ========================================== */
+
+        function showStatus(message, type) {
+
+            formStatus.textContent = message;
+
+            formStatus.className = type;
+
+            if (!message) {
+
+                formStatus.style.display = "none";
+
+                return;
+
+            }
+
+            formStatus.style.display = "block";
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>

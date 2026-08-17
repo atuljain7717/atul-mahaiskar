@@ -1,0 +1,1945 @@
+/* =========================================================
+   ATUL MAHAISKAR
+   PREMIUM PORTFOLIO — STYLE.CSS
+
+   Dark • Glassmorphism • AI • Subtle 3D • Responsive
+========================================================= */
+
+
+/* =========================================================
+   01 — RESET
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    background: #07070a;
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+a {
+    color: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   02 — BACKGROUND
+========================================================= */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: -5;
+
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(100, 100, 255, 0.06),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 70%,
+            rgba(150, 120, 255, 0.05),
+            transparent 32%
+        );
+}
+
+.background-glow {
+    position: fixed;
+
+    width: 600px;
+    height: 600px;
+
+    top: -250px;
+    right: -200px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(90, 100, 255, 0.16),
+            transparent 70%
+        );
+
+    filter: blur(40px);
+
+    pointer-events: none;
+
+    z-index: -2;
+
+    animation:
+        glowMove 10s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   03 — NAVIGATION
+========================================================= */
+
+.navbar {
+    position: relative;
+
+    width: 100%;
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    padding: 28px 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    z-index: 100;
+}
+
+
+/* =========================================================
+   04 — PREMIUM WORDMARK
+========================================================= */
+
+.brand {
+    position: relative;
+
+    display: inline-flex;
+
+    flex-direction: column;
+
+    width: max-content;
+
+    text-decoration: none;
+
+    color: #ffffff;
+
+    perspective: 800px;
+
+    animation:
+        brandFloat 6s ease-in-out 2s infinite;
+}
+
+.brand-name {
+    position: relative;
+
+    display: flex;
+
+    align-items: baseline;
+
+    white-space: nowrap;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    line-height: 1;
+
+    overflow: hidden;
+}
+
+.brand-atul {
+    display: inline-block;
+
+    color: #ffffff;
+
+    transform:
+        translateY(120%)
+        rotateX(-35deg);
+
+    opacity: 0;
+
+    animation:
+        wordmarkIn 0.8s cubic-bezier(.2, .8, .2, 1)
+        0.1s forwards;
+
+    transition:
+        transform 0.4s ease,
+        text-shadow 0.4s ease;
+}
+
+.brand-space {
+    width: 7px;
+}
+
+.brand-mahaiskar {
+    position: relative;
+
+    display: inline-block;
+
+    color: rgba(255, 255, 255, 0.52);
+
+    font-weight: 500;
+
+    transform:
+        translateY(120%)
+        rotateX(-35deg);
+
+    opacity: 0;
+
+    animation:
+        wordmarkIn 0.9s cubic-bezier(.2, .8, .2, 1)
+        0.22s forwards;
+
+    transition:
+        color 0.4s ease,
+        text-shadow 0.4s ease;
+}
+
+
+/* Moving light */
+
+.brand-mahaiskar::after {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -120%;
+
+    width: 70%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.8),
+            transparent
+        );
+
+    transform: skewX(-20deg);
+
+    animation:
+        wordmarkSweep 1.6s ease 1.15s forwards;
+
+    pointer-events: none;
+}
+
+
+/* Brand underline */
+
+.brand-line {
+    position: relative;
+
+    width: 0;
+
+    height: 1px;
+
+    margin-top: 7px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.8),
+            rgba(255, 255, 255, 0.15),
+            transparent
+        );
+
+    animation:
+        brandLineIn 0.9s ease 0.75s forwards;
+}
+
+
+/* Brand hover */
+
+.brand:hover .brand-atul {
+    text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.25);
+
+    transform:
+        translateY(-1px);
+}
+
+.brand:hover .brand-mahaiskar {
+    color: rgba(255, 255, 255, 0.85);
+
+    text-shadow:
+        0 0 18px rgba(255, 255, 255, 0.14);
+}
+
+.brand:hover .brand-line {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 1),
+            rgba(150, 150, 255, 0.4),
+            transparent
+        );
+}
+
+
+/* =========================================================
+   05 — NAVIGATION LINKS
+========================================================= */
+
+.nav-links {
+    display: flex;
+
+    align-items: center;
+
+    gap: 32px;
+}
+
+.nav-links a {
+    position: relative;
+
+    text-decoration: none;
+
+    color: #9d9da5;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.nav-links a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    bottom: -7px;
+
+    width: 0;
+    height: 1px;
+
+    background: #ffffff;
+
+    transition:
+        width 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #ffffff;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+
+/* Contact */
+
+.nav-contact {
+    padding: 10px 18px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    border-radius: 50px;
+
+    background:
+        rgba(255, 255, 255, 0.04);
+
+    backdrop-filter: blur(12px);
+
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.nav-links .nav-contact::after {
+    display: none;
+}
+
+.nav-contact:hover {
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    border-color:
+        rgba(255, 255, 255, 0.22);
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* =========================================================
+   06 — HERO
+========================================================= */
+
+.hero {
+    position: relative;
+
+    width: 100%;
+    max-width: 1250px;
+
+    min-height:
+        calc(100vh - 90px);
+
+    margin: 0 auto;
+
+    padding:
+        70px 30px 90px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.1fr)
+        minmax(400px, 0.9fr);
+
+    align-items: center;
+
+    gap: 70px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   07 — HERO MOUSE GLOW
+========================================================= */
+
+.hero::before {
+    content: "";
+
+    position: absolute;
+
+    width: 320px;
+    height: 320px;
+
+    left: 0;
+    top: 0;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(130, 130, 255, 0.08),
+            transparent 70%
+        );
+
+    pointer-events: none;
+
+    transform:
+        translate(
+            var(--mouse-x, 0px),
+            var(--mouse-y, 0px)
+        );
+
+    transition:
+        transform 0.15s ease;
+
+    z-index: -1;
+}
+
+
+/* =========================================================
+   08 — HERO CONTENT
+========================================================= */
+
+.hero-content {
+    position: relative;
+
+    z-index: 5;
+}
+
+.hero-label {
+    color: #85858e;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 25px;
+}
+
+.hero-label span {
+    color: #666670;
+
+    margin: 0 4px;
+}
+
+.hero h1 {
+    max-width: 700px;
+
+    font-size:
+        clamp(48px, 6vw, 78px);
+
+    line-height: 1.05;
+
+    letter-spacing: -3px;
+
+    font-weight: 700;
+}
+
+.hero h1 span {
+    color: #a9a9ff;
+
+    text-shadow:
+        0 0 30px rgba(120, 120, 255, 0.12);
+}
+
+.hero-description {
+    max-width: 600px;
+
+    margin-top: 30px;
+
+    color: #9b9ba5;
+
+    font-size: 16px;
+
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   09 — REVEAL ANIMATION
+========================================================= */
+
+.reveal {
+    opacity: 0;
+
+    transform:
+        translateY(30px);
+
+    animation:
+        heroReveal 1s ease forwards;
+}
+
+@keyframes heroReveal {
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+/* =========================================================
+   10 — HERO BUTTONS
+========================================================= */
+
+.hero-buttons {
+    display: flex;
+
+    gap: 14px;
+
+    margin-top: 35px;
+}
+
+.btn {
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 13px 22px;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    overflow: hidden;
+
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.2s ease;
+}
+
+.btn::after {
+    content: "";
+
+    position: absolute;
+
+    width: 0;
+    height: 0;
+
+    left: 50%;
+    top: 50%;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.15);
+
+    transform:
+        translate(-50%, -50%);
+
+    transition:
+        width 0.5s ease,
+        height 0.5s ease;
+
+    pointer-events: none;
+}
+
+.btn:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: #ffffff;
+
+    color: #08080a;
+
+    box-shadow:
+        0 10px 30px
+        rgba(255, 255, 255, 0.08);
+}
+
+.btn-primary:hover {
+    box-shadow:
+        0 15px 40px
+        rgba(255, 255, 255, 0.14);
+}
+
+.btn-secondary {
+    color: #ffffff;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    background:
+        rgba(255, 255, 255, 0.03);
+
+    backdrop-filter:
+        blur(10px);
+}
+
+.btn-secondary:hover {
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    border-color:
+        rgba(255, 255, 255, 0.22);
+}
+
+
+/* =========================================================
+   11 — HERO INFO
+========================================================= */
+
+.hero-info {
+    display: flex;
+
+    gap: 40px;
+
+    margin-top: 55px;
+}
+
+.hero-info div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+.hero-info strong {
+    font-size: 14px;
+}
+
+.hero-info span {
+    color: #777780;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   12 — SOCIAL LINKS
+========================================================= */
+
+.social-links {
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+
+    margin-top: 40px;
+}
+
+.social-links a {
+    position: relative;
+
+    color: #777780;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.5px;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.social-links a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    bottom: -6px;
+
+    width: 0;
+    height: 1px;
+
+    background: #ffffff;
+
+    transition:
+        width 0.3s ease;
+}
+
+.social-links a:hover {
+    color: #ffffff;
+
+    transform:
+        translateY(-2px);
+}
+
+.social-links a:hover::after {
+    width: 100%;
+}
+
+
+/* =========================================================
+   13 — HERO VISUAL
+========================================================= */
+
+.hero-visual {
+    position: relative;
+
+    min-height: 520px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    perspective: 1000px;
+}
+
+
+/* =========================================================
+   14 — AI CORE
+========================================================= */
+
+.ai-core {
+    position: relative;
+
+    width: 360px;
+    height: 360px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    transform-style:
+        preserve-3d;
+
+    will-change:
+        transform;
+}
+
+
+/* =========================================================
+   15 — CORE CENTER
+========================================================= */
+
+.core-center {
+    position: relative;
+
+    width: 95px;
+    height: 95px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(180, 180, 255, 0.4) 18%,
+            rgba(100, 100, 180, 0.12) 45%,
+            transparent 72%
+        );
+
+    box-shadow:
+        0 0 35px
+        rgba(180, 180, 255, 0.25),
+
+        0 0 100px
+        rgba(120, 120, 255, 0.12);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 5;
+
+    animation:
+        corePulse 4s ease-in-out infinite;
+}
+
+.core-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 0 15px #ffffff,
+
+        0 0 35px
+        rgba(180, 180, 255, 0.8);
+}
+
+
+/* =========================================================
+   16 — CORE RINGS
+========================================================= */
+
+.core-ring {
+    position: absolute;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 50%;
+
+    transform-style:
+        preserve-3d;
+
+    pointer-events: none;
+}
+
+.ring-one {
+    width: 190px;
+    height: 190px;
+
+    animation:
+        rotateRing 10s linear infinite;
+}
+
+.ring-two {
+    width: 280px;
+    height: 150px;
+
+    transform:
+        rotateX(65deg);
+
+    animation:
+        rotateRingReverse 14s linear infinite;
+}
+
+.ring-three {
+    width: 330px;
+    height: 210px;
+
+    transform:
+        rotateY(65deg);
+
+    animation:
+        rotateRing 18s linear infinite;
+}
+
+
+/* =========================================================
+   17 — AI NODES
+========================================================= */
+
+.node {
+    position: absolute;
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 0 12px
+        rgba(255, 255, 255, 0.7);
+
+    z-index: 10;
+
+    animation:
+        nodePulse 2.5s ease-in-out infinite;
+}
+
+.node-one {
+    top: 35px;
+    left: 175px;
+}
+
+.node-two {
+    top: 145px;
+    right: 10px;
+
+    animation-delay:
+        0.4s;
+}
+
+.node-three {
+    bottom: 45px;
+    left: 80px;
+
+    animation-delay:
+        0.8s;
+}
+
+.node-four {
+    bottom: 110px;
+    right: 55px;
+
+    animation-delay:
+        1.2s;
+}
+
+.node-five {
+    top: 100px;
+    left: 50px;
+
+    animation-delay:
+        1.6s;
+}
+
+
+/* =========================================================
+   18 — FLOATING TECHNOLOGY LABELS
+========================================================= */
+
+.floating-label {
+    position: absolute;
+
+    padding: 9px 13px;
+
+    display: flex;
+
+    gap: 9px;
+
+    align-items: center;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.09);
+
+    border-radius: 9px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    backdrop-filter:
+        blur(14px);
+
+    color: #bdbdc6;
+
+    font-size: 11px;
+
+    letter-spacing: 0.5px;
+
+    box-shadow:
+        0 15px 40px
+        rgba(0, 0, 0, 0.25);
+
+    animation:
+        labelFloat 5s ease-in-out infinite;
+
+    z-index: 20;
+}
+
+.floating-label span {
+    color: #686873;
+
+    font-family: monospace;
+}
+
+.label-python {
+    top: 95px;
+    left: 15px;
+}
+
+.label-ai {
+    top: 245px;
+    right: 0;
+
+    animation-delay:
+        1s;
+}
+
+.label-flask {
+    bottom: 75px;
+    left: 65px;
+
+    animation-delay:
+        2s;
+}
+
+
+/* =========================================================
+   19 — OUTER ORBIT
+========================================================= */
+
+.hero-orbit {
+    position: absolute;
+
+    width: 450px;
+    height: 450px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.035);
+
+    box-shadow:
+        inset 0 0 80px
+        rgba(120, 120, 255, 0.03);
+
+    animation:
+        orbitSpin 25s linear infinite;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   20 — ANIMATIONS
+========================================================= */
+
+@keyframes wordmarkIn {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateY(120%)
+            rotateX(-35deg);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            rotateX(0);
+    }
+}
+
+
+@keyframes wordmarkSweep {
+
+    0% {
+        left: -120%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
+
+
+@keyframes brandLineIn {
+
+    from {
+        width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+
+@keyframes brandFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-1px);
+    }
+}
+
+
+@keyframes glowMove {
+
+    0% {
+        transform:
+            translate(0, 0)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            translate(-80px, 60px)
+            scale(1.15);
+    }
+
+    100% {
+        transform:
+            translate(0, 0)
+            scale(1);
+    }
+}
+
+
+@keyframes corePulse {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.08);
+    }
+}
+
+
+@keyframes rotateRing {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+
+
+@keyframes rotateRingReverse {
+
+    from {
+        transform:
+            rotateX(65deg)
+            rotate(360deg);
+    }
+
+    to {
+        transform:
+            rotateX(65deg)
+            rotate(0deg);
+    }
+}
+
+
+@keyframes orbitSpin {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+
+
+@keyframes nodePulse {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+
+        opacity:
+            0.5;
+    }
+
+    50% {
+        transform:
+            scale(1.8);
+
+        opacity:
+            1;
+    }
+}
+
+
+@keyframes labelFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-8px);
+    }
+}
+
+
+/* =========================================================
+   21 — RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .navbar {
+        padding:
+            24px 25px;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+
+        text-align: center;
+
+        gap: 20px;
+
+        padding:
+            55px 25px 80px;
+    }
+
+    .hero-content {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: center;
+    }
+
+    .hero-description {
+        max-width:
+            650px;
+    }
+
+    .hero-buttons {
+        justify-content:
+            center;
+    }
+
+    .hero-info {
+        justify-content:
+            center;
+    }
+
+    .social-links {
+        justify-content:
+            center;
+    }
+
+    .hero-visual {
+        width: 100%;
+
+        min-height:
+            500px;
+    }
+}
+
+
+/* =========================================================
+   22 — TABLET
+========================================================= */
+
+@media (max-width: 750px) {
+
+    .navbar {
+        flex-direction:
+            column;
+
+        gap: 22px;
+    }
+
+    .nav-links {
+        flex-wrap:
+            wrap;
+
+        justify-content:
+            center;
+
+        gap: 20px;
+    }
+
+    .hero {
+        padding:
+            45px 22px 70px;
+    }
+
+    .hero h1 {
+        font-size:
+            clamp(42px, 10vw, 62px);
+
+        letter-spacing:
+            -2px;
+    }
+
+    .hero-info {
+        gap: 25px;
+    }
+
+    .hero-visual {
+        min-height:
+            470px;
+    }
+
+    .ai-core {
+        width: 320px;
+        height: 320px;
+    }
+
+    .hero-orbit {
+        width: 390px;
+        height: 390px;
+    }
+}
+
+
+/* =========================================================
+   23 — MOBILE
+========================================================= */
+
+@media (max-width: 550px) {
+
+    .navbar {
+        padding:
+            20px 18px;
+    }
+
+
+    /* Brand */
+
+    .brand-name {
+        font-size:
+            17px;
+
+        letter-spacing:
+            1.4px;
+    }
+
+    .brand-space {
+        width:
+            5px;
+    }
+
+
+    /* Navigation */
+
+    .nav-links {
+        width: 100%;
+
+        gap:
+            15px;
+    }
+
+    .nav-links a {
+        font-size:
+            12px;
+    }
+
+    .nav-contact {
+        padding:
+            8px 13px;
+    }
+
+
+    /* Hero */
+
+    .hero {
+        min-height:
+            auto;
+
+        padding:
+            50px 18px 60px;
+
+        gap:
+            10px;
+    }
+
+    .hero-label {
+        font-size:
+            10px;
+
+        letter-spacing:
+            1.4px;
+
+        line-height:
+            1.8;
+    }
+
+    .hero h1 {
+        font-size:
+            clamp(38px, 11vw, 52px);
+
+        letter-spacing:
+            -2px;
+    }
+
+    .hero-description {
+        font-size:
+            14px;
+
+        line-height:
+            1.7;
+    }
+
+
+    /* Buttons */
+
+    .hero-buttons {
+        width: 100%;
+
+        flex-direction:
+            column;
+
+        align-items:
+            center;
+    }
+
+    .btn {
+        width: 100%;
+
+        max-width:
+            260px;
+    }
+
+
+    /* Quick info */
+
+    .hero-info {
+        width: 100%;
+
+        gap:
+            20px;
+
+        justify-content:
+            space-between;
+    }
+
+    .hero-info strong {
+        font-size:
+            12px;
+    }
+
+    .hero-info span {
+        font-size:
+            10px;
+    }
+
+
+    /* Social */
+
+    .social-links {
+        gap:
+            16px;
+
+        margin-top:
+            32px;
+
+        flex-wrap:
+            wrap;
+
+        justify-content:
+            center;
+    }
+
+    .social-links a {
+        font-size:
+            11px;
+    }
+
+
+    /* Visual */
+
+    .hero-visual {
+        min-height:
+            410px;
+
+        margin-top:
+            20px;
+    }
+
+
+    /* AI core */
+
+    .ai-core {
+        width:
+            270px;
+
+        height:
+            270px;
+    }
+
+    .core-center {
+        width:
+            75px;
+
+        height:
+            75px;
+    }
+
+    .ring-one {
+        width:
+            150px;
+
+        height:
+            150px;
+    }
+
+    .ring-two {
+        width:
+            220px;
+
+        height:
+            120px;
+    }
+
+    .ring-three {
+        width:
+            250px;
+
+        height:
+            160px;
+    }
+
+    .hero-orbit {
+        width:
+            310px;
+
+        height:
+            310px;
+    }
+
+
+    /* Floating labels */
+
+    .floating-label {
+        font-size:
+            9px;
+
+        padding:
+            7px 9px;
+    }
+
+    .label-python {
+        top:
+            70px;
+
+        left:
+            0;
+    }
+
+    .label-ai {
+        top:
+            210px;
+
+        right:
+            0;
+    }
+
+    .label-flask {
+        bottom:
+            45px;
+
+        left:
+            30px;
+    }
+}
+
+
+/* =========================================================
+   24 — VERY SMALL DEVICES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .navbar {
+        padding:
+            18px 14px;
+    }
+
+    .nav-links {
+        gap:
+            10px;
+    }
+
+    .nav-links a {
+        font-size:
+            11px;
+    }
+
+    .hero {
+        padding-left:
+            14px;
+
+        padding-right:
+            14px;
+    }
+
+    .hero h1 {
+        font-size:
+            36px;
+    }
+
+    .hero-info {
+        gap:
+            12px;
+    }
+
+    .hero-info strong {
+        font-size:
+            11px;
+    }
+
+    .hero-info span {
+        font-size:
+            9px;
+    }
+
+    .hero-visual {
+        min-height:
+            360px;
+    }
+
+    .ai-core {
+        width:
+            240px;
+
+        height:
+            240px;
+    }
+
+    .hero-orbit {
+        width:
+            275px;
+
+        height:
+            275px;
+    }
+
+    .floating-label {
+        transform:
+            scale(0.9);
+    }
+}
+
+
+/* =========================================================
+   25 — LANDSCAPE MOBILE
+========================================================= */
+
+@media (max-height: 600px) and (max-width: 900px) {
+
+    .hero {
+        min-height:
+            auto;
+
+        padding-top:
+            35px;
+
+        padding-bottom:
+            50px;
+    }
+
+    .hero-visual {
+        min-height:
+            350px;
+    }
+}
+
+
+/* =========================================================
+   26 — REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        scroll-behavior:
+            auto !important;
+
+        transition-duration:
+            0.01ms !important;
+    }
+
+    .brand,
+    .brand-atul,
+    .brand-mahaiskar,
+    .brand-mahaiskar::after,
+    .brand-line {
+        animation:
+            none !important;
+
+        transform:
+            none !important;
+
+        opacity:
+            1 !important;
+    }
+
+    .brand-line {
+        width:
+            100%;
+    }
+
+    .reveal {
+        opacity:
+            1;
+
+        transform:
+            none;
+    }
+}
+
+/* =========================================================
+   25 — PREMIUM SOCIAL MEDIA LINKS
+   ========================================================= */
+
+.social-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-top: 32px;
+}
+
+.social-links a {
+    position: relative;
+
+    width: 42px;
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #9d9da5;
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.035);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.20);
+
+    overflow: hidden;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        background 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+
+/* -----------------------------------------
+   LIGHT EFFECT
+----------------------------------------- */
+
+.social-links a::before {
+    content: "";
+
+    position: absolute;
+
+    width: 80px;
+    height: 80px;
+
+    left: 50%;
+    top: 50%;
+
+    transform:
+        translate(-50%, -50%)
+        scale(0);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.14),
+            transparent 70%
+        );
+
+    transition:
+        transform 0.4s ease;
+
+    pointer-events: none;
+}
+
+
+/* -----------------------------------------
+   ICON
+----------------------------------------- */
+
+.social-links i {
+    position: relative;
+
+    z-index: 2;
+
+    transition:
+        transform 0.3s ease,
+        color 0.3s ease;
+}
+
+
+/* -----------------------------------------
+   HOVER
+----------------------------------------- */
+
+.social-links a:hover {
+    color: #ffffff;
+
+    transform:
+        translateY(-5px);
+
+    border-color:
+        rgba(255, 255, 255, 0.22);
+
+    background:
+        rgba(255, 255, 255, 0.075);
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.35),
+        0 0 25px rgba(140, 140, 255, 0.08);
+}
+
+.social-links a:hover::before {
+    transform:
+        translate(-50%, -50%)
+        scale(1);
+}
+
+.social-links a:hover i {
+    transform:
+        scale(1.12);
+}
+
+
+/* -----------------------------------------
+   CLICK
+----------------------------------------- */
+
+.social-links a:active {
+    transform:
+        translateY(-2px)
+        scale(0.96);
+}
+
+
+/* -----------------------------------------
+   MOBILE
+----------------------------------------- */
+
+@media (max-width: 1000px) {
+
+    .social-links {
+        justify-content: center;
+    }
+
+}
+
+
+@media (max-width: 550px) {
+
+    .social-links {
+        gap: 10px;
+
+        margin-top: 28px;
+    }
+
+    .social-links a {
+        width: 40px;
+        height: 40px;
+
+        font-size: 15px;
+    }
+
+}
+
+
+/* -----------------------------------------
+   REDUCED MOTION
+----------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .social-links a,
+    .social-links i,
+    .social-links a::before {
+        transition: none;
+    }
+
+    .social-links a:hover {
+        transform: none;
+    }
+
+}

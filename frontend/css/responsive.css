@@ -1,0 +1,359 @@
+/* =========================================================
+   ATUL MAHAISKAR PORTFOLIO
+   RESPONSIVE.CSS
+   Clean • Conflict-Free • Mobile • Tablet
+========================================================= */
+
+
+/* =========================================================
+   TABLET / SMALL LAPTOP
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding-top: 55px;
+        text-align: center;
+    }
+
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-description {
+        max-width: 650px;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-info {
+        justify-content: center;
+    }
+
+    .hero-visual {
+        width: 100%;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 750px) {
+
+    .navbar {
+        padding: 24px 25px;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .nav-links {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .hero {
+        padding: 45px 22px 70px;
+    }
+
+    .hero h1 {
+        font-size: clamp(42px, 10vw, 62px);
+        letter-spacing: -2px;
+    }
+
+    .hero-info {
+        gap: 25px;
+    }
+
+    .hero-visual {
+        min-height: 470px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 550px) {
+
+    .navbar {
+        padding: 20px 18px;
+    }
+
+
+    /* -----------------------------------------
+       BRAND
+    ----------------------------------------- */
+
+    .brand-name {
+        font-size: 17px;
+        letter-spacing: 1.4px;
+    }
+
+    .brand-space {
+        width: 5px;
+    }
+
+
+    /* -----------------------------------------
+       NAVIGATION
+    ----------------------------------------- */
+
+    .nav-links {
+        width: 100%;
+        gap: 15px;
+    }
+
+    .nav-links a {
+        font-size: 12px;
+    }
+
+    .nav-contact {
+        padding: 8px 13px;
+    }
+
+
+    /* -----------------------------------------
+       HERO
+    ----------------------------------------- */
+
+    .hero {
+        min-height: auto;
+        padding: 50px 18px 60px;
+        gap: 10px;
+    }
+
+    .hero-label {
+        font-size: 10px;
+        letter-spacing: 1.4px;
+        line-height: 1.8;
+    }
+
+    .hero h1 {
+        font-size: clamp(38px, 11vw, 52px);
+        letter-spacing: -2px;
+    }
+
+    .hero-description {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+
+    /* -----------------------------------------
+       BUTTONS
+    ----------------------------------------- */
+
+    .hero-buttons {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 260px;
+    }
+
+
+    /* -----------------------------------------
+       QUICK INFO
+    ----------------------------------------- */
+
+    .hero-info {
+        width: 100%;
+        gap: 20px;
+        justify-content: space-between;
+    }
+
+    .hero-info strong {
+        font-size: 12px;
+    }
+
+    .hero-info span {
+        font-size: 10px;
+    }
+
+
+    /* -----------------------------------------
+       HERO VISUAL
+    ----------------------------------------- */
+
+    .hero-visual {
+        min-height: 410px;
+        margin-top: 20px;
+    }
+
+
+    /* -----------------------------------------
+       AI CORE
+    ----------------------------------------- */
+
+    .ai-core {
+        width: 270px;
+        height: 270px;
+    }
+
+    .core-center {
+        width: 75px;
+        height: 75px;
+    }
+
+    .ring-one {
+        width: 150px;
+        height: 150px;
+    }
+
+    .ring-two {
+        width: 220px;
+        height: 120px;
+    }
+
+    .ring-three {
+        width: 250px;
+        height: 160px;
+    }
+
+    .hero-orbit {
+        width: 310px;
+        height: 310px;
+    }
+
+
+    /* -----------------------------------------
+       FLOATING LABELS
+    ----------------------------------------- */
+
+    .floating-label {
+        font-size: 9px;
+        padding: 7px 9px;
+    }
+
+    .label-python {
+        top: 70px;
+        left: 0;
+    }
+
+    .label-ai {
+        top: 210px;
+        right: 0;
+    }
+
+    .label-flask {
+        bottom: 45px;
+        left: 30px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .navbar {
+        padding: 18px 14px;
+    }
+
+    .nav-links {
+        gap: 10px;
+    }
+
+    .nav-links a {
+        font-size: 11px;
+    }
+
+    .hero {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .hero h1 {
+        font-size: 36px;
+    }
+
+    .hero-info {
+        gap: 12px;
+    }
+
+    .hero-info strong {
+        font-size: 11px;
+    }
+
+    .hero-info span {
+        font-size: 9px;
+    }
+
+    .hero-visual {
+        min-height: 360px;
+    }
+
+    .ai-core {
+        width: 240px;
+        height: 240px;
+    }
+
+    .hero-orbit {
+        width: 275px;
+        height: 275px;
+    }
+
+    .floating-label {
+        transform: scale(0.9);
+    }
+}
+
+
+/* =========================================================
+   LANDSCAPE MOBILE
+========================================================= */
+
+@media (max-height: 600px) and (max-width: 900px) {
+
+    .hero {
+        min-height: auto;
+        padding-top: 35px;
+        padding-bottom: 50px;
+    }
+
+    .hero-visual {
+        min-height: 350px;
+    }
+}
+
+
+/* =========================================================
+   TOUCH DEVICE SAFETY
+========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+    .nav-links a:hover::after {
+        width: 0;
+    }
+
+    .nav-links a.active::after {
+        width: 100%;
+    }
+
+    .btn:hover::after {
+        width: 0;
+        height: 0;
+    }
+}

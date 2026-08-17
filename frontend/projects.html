@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================
+         DOCUMENT SETUP
+    ========================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+
+    <!-- =========================================
+         SEO
+    ========================================== -->
+
+    <meta name="description"
+          content="Projects by Atul Mahaiskar — Python, AI, Flask, backend and software development projects.">
+
+    <meta name="author"
+          content="Atul Mahaiskar">
+
+    <meta name="keywords"
+          content="Atul Mahaiskar Projects, Python Projects, AI Projects, Flask Projects, Software Development">
+
+
+    <!-- =========================================
+         TITLE
+    ========================================== -->
+
+    <title>
+        Projects | Atul Mahaiskar
+    </title>
+
+
+    <!-- =========================================
+         GOOGLE FONT
+    ========================================== -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+
+    <!-- =========================================
+         FONT AWESOME
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+    <!-- =========================================
+         MAIN CSS
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="css/style.css">
+
+    <link rel="stylesheet"
+          href="css/responsive.css">
+
+
+    <!-- =========================================
+         PROJECT PAGE CSS
+    ========================================== -->
+
+    <style>
+
+        /* =========================================
+           PROJECT PAGE
+        ========================================= */
+
+        .projects-page {
+            width: 100%;
+            max-width: 1250px;
+
+            margin: 0 auto;
+
+            padding: 80px 30px 100px;
+        }
+
+
+        /* =========================================
+           PAGE HEADER
+        ========================================= */
+
+        .projects-header {
+            max-width: 800px;
+
+            margin-bottom: 60px;
+        }
+
+        .projects-label {
+            color: #85858e;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 20px;
+        }
+
+        .projects-header h1 {
+            font-size: clamp(48px, 6vw, 76px);
+
+            line-height: 1.05;
+
+            letter-spacing: -3px;
+
+            margin-bottom: 25px;
+        }
+
+        .projects-header h1 span {
+            color: #a9a9ff;
+
+            text-shadow:
+                0 0 30px rgba(120, 120, 255, 0.12);
+        }
+
+        .projects-header p {
+            max-width: 680px;
+
+            color: #9b9ba5;
+
+            font-size: 16px;
+
+            line-height: 1.8;
+        }
+
+
+        /* =========================================
+           PROJECT GRID
+        ========================================== */
+
+        .projects-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 24px;
+        }
+
+
+        /* =========================================
+           PROJECT CARD
+        ========================================== */
+
+        .project-card {
+            position: relative;
+
+            display: flex;
+
+            flex-direction: column;
+
+            min-height: 390px;
+
+            padding: 30px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 22px;
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.25);
+
+            overflow: hidden;
+
+            transition:
+                transform 0.4s ease,
+                border-color 0.4s ease,
+                background 0.4s ease,
+                box-shadow 0.4s ease;
+        }
+
+
+        /* =========================================
+           CARD GLOW
+        ========================================== */
+
+        .project-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 250px;
+            height: 250px;
+
+            top: -140px;
+            right: -100px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(130, 130, 255, 0.13),
+                    transparent 70%
+                );
+
+            pointer-events: none;
+
+            transition:
+                transform 0.5s ease;
+        }
+
+        .project-card::after {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            top: 0;
+
+            width: 100%;
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.25),
+                    transparent
+                );
+
+            opacity: 0;
+
+            transition:
+                opacity 0.4s ease;
+        }
+
+
+        /* =========================================
+           CARD HOVER
+        ========================================== */
+
+        .project-card:hover {
+            transform:
+                translateY(-8px);
+
+            border-color:
+                rgba(255, 255, 255, 0.17);
+
+            background:
+                rgba(255, 255, 255, 0.055);
+
+            box-shadow:
+                0 35px 90px rgba(0, 0, 0, 0.35);
+        }
+
+        .project-card:hover::before {
+            transform:
+                scale(1.25);
+        }
+
+        .project-card:hover::after {
+            opacity: 1;
+        }
+
+
+        /* =========================================
+           PROJECT NUMBER
+        ========================================== */
+
+        .project-number {
+            position: relative;
+
+            z-index: 2;
+
+            color: #62626d;
+
+            font-size: 11px;
+
+            font-family: monospace;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================================
+           PROJECT ICON
+        ========================================== */
+
+        .project-icon {
+            position: relative;
+
+            z-index: 2;
+
+            width: 52px;
+            height: 52px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 15px;
+
+            background:
+                rgba(255, 255, 255, 0.05);
+
+            color: #a9a9ff;
+
+            font-size: 20px;
+
+            margin-bottom: 24px;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.2);
+
+            transition:
+                transform 0.4s ease,
+                background 0.4s ease;
+        }
+
+        .project-card:hover .project-icon {
+            transform:
+                translateY(-4px)
+                rotate(-3deg);
+
+            background:
+                rgba(255, 255, 255, 0.08);
+        }
+
+
+        /* =========================================
+           PROJECT TITLE
+        ========================================== */
+
+        .project-card h2 {
+            position: relative;
+
+            z-index: 2;
+
+            font-size: 22px;
+
+            line-height: 1.3;
+
+            letter-spacing: -0.5px;
+
+            margin-bottom: 14px;
+        }
+
+
+        /* =========================================
+           PROJECT DESCRIPTION
+        ========================================== */
+
+        .project-description {
+            position: relative;
+
+            z-index: 2;
+
+            color: #92929c;
+
+            font-size: 14px;
+
+            line-height: 1.8;
+
+            max-width: 520px;
+        }
+
+
+        /* =========================================
+           TECHNOLOGY TAGS
+        ========================================== */
+
+        .project-tech {
+            position: relative;
+
+            z-index: 2;
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-top: 22px;
+        }
+
+        .project-tech span {
+            padding:
+                7px 10px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            border-radius: 8px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            color: #85858e;
+
+            font-size: 10px;
+
+            font-family: monospace;
+
+            transition:
+                0.3s ease;
+        }
+
+        .project-card:hover .project-tech span {
+            border-color:
+                rgba(255, 255, 255, 0.11);
+
+            color: #aaaab3;
+        }
+
+
+        /* =========================================
+           PROJECT ACTIONS
+        ========================================== */
+
+        .project-actions {
+            position: relative;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-top: auto;
+
+            padding-top: 28px;
+        }
+
+        .project-link {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            padding:
+                10px 14px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 9px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            color: #a3a3ad;
+
+            text-decoration: none;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            transition:
+                0.3s ease;
+        }
+
+        .project-link:hover {
+            color: #ffffff;
+
+            border-color:
+                rgba(255, 255, 255, 0.18);
+
+            background:
+                rgba(255, 255, 255, 0.07);
+
+            transform:
+                translateY(-2px);
+        }
+
+        .project-link.primary {
+            background:
+                rgba(255, 255, 255, 0.08);
+
+            color: #ffffff;
+        }
+
+
+        /* =========================================
+           PROJECT STATUS
+        ========================================== */
+
+        .project-status {
+            position: absolute;
+
+            top: 30px;
+            right: 30px;
+
+            z-index: 3;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            color: #73737d;
+
+            font-size: 10px;
+        }
+
+        .project-status-dot {
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 10px rgba(255, 255, 255, 0.5);
+
+            animation:
+                projectPulse 2s ease-in-out infinite;
+        }
+
+
+        /* =========================================
+           FEATURED PROJECT
+        ========================================== */
+
+        .project-card.featured {
+            grid-column:
+                span 2;
+
+            min-height: 330px;
+
+            display: grid;
+
+            grid-template-columns:
+                70px
+                1fr
+                auto;
+
+            gap: 25px;
+
+            align-items: start;
+        }
+
+        .featured .project-number {
+            margin-top: 5px;
+
+            margin-bottom: 0;
+        }
+
+        .featured-content {
+            position: relative;
+
+            z-index: 2;
+        }
+
+        .featured .project-icon {
+            margin-bottom: 0;
+        }
+
+        .featured .project-actions {
+            margin-top: 0;
+
+            padding-top: 0;
+
+            align-self: end;
+        }
+
+
+        /* =========================================
+           SECTION CTA
+        ========================================== */
+
+        .projects-cta {
+            margin-top: 30px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+
+            padding:
+                28px 32px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.055),
+                    rgba(255, 255, 255, 0.02)
+                );
+        }
+
+        .projects-cta h2 {
+            font-size: 20px;
+
+            margin-bottom: 6px;
+        }
+
+        .projects-cta p {
+            color: #777780;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+           PROJECT ANIMATION
+        ========================================== */
+
+        @keyframes projectPulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+
+                transform:
+                    scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+
+                transform:
+                    scale(1.2);
+            }
+
+        }
+
+
+        /* =========================================
+           TABLET
+        ========================================== */
+
+        @media (max-width: 900px) {
+
+            .projects-page {
+                padding:
+                    65px 25px 85px;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-card.featured {
+                grid-column: span 1;
+
+                display: flex;
+
+                flex-direction: column;
+
+                min-height: 390px;
+            }
+
+            .featured .project-number {
+                margin-bottom: 25px;
+            }
+
+            .featured .project-icon {
+                margin-bottom: 24px;
+            }
+
+            .featured .project-actions {
+                margin-top: auto;
+
+                padding-top: 28px;
+
+                align-self: auto;
+            }
+
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================== */
+
+        @media (max-width: 550px) {
+
+            .projects-page {
+                padding:
+                    50px 18px 65px;
+            }
+
+            .projects-header {
+                margin-bottom: 40px;
+            }
+
+            .projects-header h1 {
+                font-size: 44px;
+
+                letter-spacing: -2px;
+            }
+
+            .projects-header p {
+                font-size: 14px;
+            }
+
+            .project-card {
+                min-height: 380px;
+
+                padding: 24px;
+
+                border-radius: 18px;
+            }
+
+            .project-status {
+                top: 24px;
+                right: 24px;
+            }
+
+            .project-card h2 {
+                font-size: 20px;
+            }
+
+            .project-description {
+                font-size: 13px;
+            }
+
+            .project-actions {
+                flex-wrap: wrap;
+            }
+
+            .projects-cta {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                padding: 24px;
+            }
+
+        }
+
+
+        /* =========================================
+           REDUCED MOTION
+        ========================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .project-card,
+            .project-link,
+            .project-icon {
+                transition: none;
+            }
+
+            .project-status-dot {
+                animation: none;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     BACKGROUND
+========================================== -->
+
+<div class="background-glow"></div>
+
+
+<!-- =========================================
+     NAVIGATION
+========================================== -->
+
+<header class="navbar">
+
+    <!-- PREMIUM WORDMARK -->
+
+    <a href="index.html"
+       class="brand"
+       aria-label="Atul Mahaiskar - Home">
+
+        <span class="brand-name">
+
+            <span class="brand-atul">
+                ATUL
+            </span>
+
+            <span class="brand-space"></span>
+
+            <span class="brand-mahaiskar">
+                MAHAISKAR
+            </span>
+
+        </span>
+
+        <span class="brand-line"></span>
+
+    </a>
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="nav-links"
+         aria-label="Main navigation">
+
+        <a href="about.html">
+            About
+        </a>
+
+        <a href="skills.html">
+            Skills
+        </a>
+
+        <a href="projects.html"
+           class="active">
+            Projects
+        </a>
+
+        <a href="resume.html">
+            Resume
+        </a>
+
+        <a href="contact.html"
+           class="nav-contact">
+            Contact
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- =========================================
+     MAIN CONTENT
+========================================== -->
+
+<main class="projects-page">
+
+
+    <!-- =========================================
+         PROJECT HEADER
+    ========================================== -->
+
+    <section class="projects-header">
+
+        <p class="projects-label">
+            SELECTED WORK
+        </p>
+
+        <h1>
+            Projects that
+            <span>solve problems.</span>
+        </h1>
+
+        <p>
+            A collection of practical applications built
+            while learning Python, backend development,
+            databases and AI technologies.
+        </p>
+
+    </section>
+
+
+
+    <!-- =========================================
+         PROJECT GRID
+    ========================================== -->
+
+    <section class="projects-grid"
+             aria-label="Projects">
+
+
+        <!-- =====================================
+             PROJECT 01 — FEATURED
+        ====================================== -->
+
+        <article class="project-card featured">
+
+
+            <div class="project-number">
+                01
+            </div>
+
+
+            <div class="featured-content">
+
+                <div class="project-icon">
+
+                    <i class="fa-solid fa-boxes-stacked"></i>
+
+                </div>
+
+                <h2>
+                    Inventory Management System
+                </h2>
+
+                <p class="project-description">
+                    A practical inventory management
+                    application designed to manage products,
+                    categories, stock and sales information
+                    through a structured backend system.
+                </p>
+
+
+                <div class="project-tech">
+
+                    <span>Python</span>
+                    <span>Flask</span>
+                    <span>SQLite</span>
+                    <span>SQLAlchemy</span>
+                    <span>HTML</span>
+                    <span>CSS</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="#"
+                   class="project-link primary"
+                   aria-label="View Inventory Management System">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="#"
+                   class="project-link"
+                   aria-label="Inventory Management System GitHub">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Development
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             PROJECT 02
+        ====================================== -->
+
+        <article class="project-card">
+
+            <div class="project-number">
+                02
+            </div>
+
+            <div class="project-icon">
+
+                <i class="fa-solid fa-newspaper"></i>
+
+            </div>
+
+            <h2>
+                Fake News Detector
+            </h2>
+
+            <p class="project-description">
+                An AI and machine-learning based application
+                for analysing text and classifying news content
+                as potentially fake or genuine.
+            </p>
+
+
+            <div class="project-tech">
+
+                <span>Python</span>
+                <span>Machine Learning</span>
+                <span>Scikit-learn</span>
+                <span>Pandas</span>
+                <span>NumPy</span>
+                <span>Flask</span>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="https://Mhaiskar.pythonanywhere.com"
+                   class="project-link primary">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="https://github.com/atuljain7717/Fake_news_detector"
+                   class="project-link">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Development
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             PROJECT 03
+        ====================================== -->
+
+        <article class="project-card">
+
+            <div class="project-number">
+                03
+            </div>
+
+            <div class="project-icon">
+
+                <i class="fa-solid fa-user-check"></i>
+
+            </div>
+
+            <h2>
+                Smart Attendance System
+            </h2>
+
+            <p class="project-description">
+                A digital attendance concept focused on
+                recording attendance data and simplifying
+                student or employee attendance management.
+            </p>
+
+
+            <div class="project-tech">
+
+                <span>Python</span>
+                <span>Flask</span>
+                <span>SQLite</span>
+                <span>HTML</span>
+                <span>CSS</span>
+                <span>JavaScript</span>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="#"
+                   class="project-link primary">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="https://github.com/atuljain7717/Fake_news_detector"
+                   class="project-link">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Project
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             PROJECT 04
+        ====================================== -->
+
+        <article class="project-card">
+
+            <div class="project-number">
+                04
+            </div>
+
+            <div class="project-icon">
+
+                <i class="fa-solid fa-comments"></i>
+
+            </div>
+
+            <h2>
+                AI Interview Assistant
+            </h2>
+
+            <p class="project-description">
+                An interview preparation application designed
+                to present technical questions, track progress
+                and provide a structured practice experience.
+            </p>
+
+
+            <div class="project-tech">
+
+                <span>Python</span>
+                <span>Flask</span>
+                <span>SQLite</span>
+                <span>AI</span>
+                <span>HTML</span>
+                <span>CSS</span>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="#"
+                   class="project-link primary">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="#"
+                   class="project-link">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Development
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             PROJECT 05
+        ====================================== -->
+
+        <article class="project-card">
+
+            <div class="project-number">
+                05
+            </div>
+
+            <div class="project-icon">
+
+                <i class="fa-solid fa-bolt"></i>
+
+            </div>
+
+            <h2>
+                Energy Consumption Prediction
+            </h2>
+
+            <p class="project-description">
+                A data-driven project focused on analysing
+                energy consumption patterns and exploring
+                prediction techniques using historical data.
+            </p>
+
+
+            <div class="project-tech">
+
+                <span>Python</span>
+                <span>Machine Learning</span>
+                <span>Pandas</span>
+                <span>NumPy</span>
+                <span>Scikit-learn</span>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="#"
+                   class="project-link primary">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="#"
+                   class="project-link">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Project
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             PROJECT 06
+        ====================================== -->
+
+        <article class="project-card">
+
+            <div class="project-number">
+                06
+            </div>
+
+            <div class="project-icon">
+
+                <i class="fa-solid fa-robot"></i>
+
+            </div>
+
+            <h2>
+                AI Text Generator
+            </h2>
+
+            <p class="project-description">
+                An AI-focused application exploring automated
+                text generation and interaction with language
+                models through a simple software interface.
+            </p>
+
+
+            <div class="project-tech">
+
+                <span>Python</span>
+                <span>AI</span>
+                <span>Flask</span>
+                <span>API</span>
+                <span>HTML</span>
+                <span>JavaScript</span>
+
+            </div>
+
+
+            <div class="project-actions">
+
+                <a href="#"
+                   class="project-link primary">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                    View Project
+
+                </a>
+
+                <a href="#"
+                   class="project-link">
+
+                    <i class="fa-brands fa-github"></i>
+
+                    GitHub
+
+                </a>
+
+            </div>
+
+
+            <div class="project-status">
+
+                <span class="project-status-dot"></span>
+
+                Development
+
+            </div>
+
+        </article>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         CTA
+    ========================================== -->
+
+    <section class="projects-cta">
+
+        <div>
+
+            <h2>
+                Have an idea to build?
+            </h2>
+
+            <p>
+                Let's turn a practical problem into useful software.
+            </p>
+
+        </div>
+
+
+        <a href="contact.html"
+           class="btn btn-primary">
+
+            Get in Touch
+
+        </a>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================== -->
+
+<script src="js/main.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================
+         DOCUMENT SETUP
+    ========================================== -->
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+
+    <!-- =========================================
+         SEO
+    ========================================== -->
+
+    <meta name="description"
+          content="Resume of Atul Mahaiskar — Python, AI and Software Developer.">
+
+    <meta name="author"
+          content="Atul Mahaiskar">
+
+    <meta name="keywords"
+          content="Atul Mahaiskar Resume, Python Developer Resume, AI Developer, Software Developer">
+
+
+    <!-- =========================================
+         TITLE
+    ========================================== -->
+
+    <title>
+        Resume | Atul Mahaiskar
+    </title>
+
+
+    <!-- =========================================
+         GOOGLE FONT
+    ========================================== -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+
+    <!-- =========================================
+         ICONS
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+    <!-- =========================================
+         MAIN CSS
+    ========================================== -->
+
+    <link rel="stylesheet"
+          href="css/style.css">
+
+    <link rel="stylesheet"
+          href="css/responsive.css">
+
+
+    <!-- =========================================
+         RESUME PAGE CSS
+    ========================================== -->
+
+    <style>
+
+        /* =========================================
+           RESUME PAGE
+        ========================================= */
+
+        .resume-page {
+            width: 100%;
+            max-width: 1250px;
+
+            margin: 0 auto;
+
+            padding: 80px 30px 100px;
+        }
+
+
+        /* =========================================
+           PAGE HEADER
+        ========================================= */
+
+        .resume-header {
+            max-width: 850px;
+
+            margin-bottom: 55px;
+        }
+
+        .resume-label {
+            color: #85858e;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 20px;
+        }
+
+        .resume-header h1 {
+            font-size: clamp(48px, 6vw, 76px);
+
+            line-height: 1.05;
+
+            letter-spacing: -3px;
+
+            margin-bottom: 25px;
+        }
+
+        .resume-header h1 span {
+            color: #a9a9ff;
+
+            text-shadow:
+                0 0 30px rgba(120, 120, 255, 0.12);
+        }
+
+        .resume-header p {
+            max-width: 700px;
+
+            color: #9b9ba5;
+
+            font-size: 16px;
+
+            line-height: 1.8;
+        }
+
+
+        /* =========================================
+           RESUME ACTIONS
+        ========================================== */
+
+        .resume-actions {
+            display: flex;
+
+            gap: 14px;
+
+            margin-top: 30px;
+
+            flex-wrap: wrap;
+        }
+
+
+        /* =========================================
+           RESUME GRID
+        ========================================== */
+
+        .resume-grid {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 25px;
+        }
+
+
+        /* =========================================
+           RESUME CARD
+        ========================================== */
+
+        .resume-card {
+            position: relative;
+
+            padding: 30px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 20px;
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.25);
+
+            overflow: hidden;
+        }
+
+        .resume-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+            height: 220px;
+
+            top: -130px;
+            right: -100px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(130, 130, 255, 0.10),
+                    transparent 70%
+                );
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================
+           CARD HEADING
+        ========================================== */
+
+        .resume-card h2 {
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-bottom: 25px;
+
+            font-size: 21px;
+
+            letter-spacing: -0.5px;
+        }
+
+        .resume-card h2 i {
+            color: #a9a9ff;
+
+            font-size: 16px;
+        }
+
+
+        /* =========================================
+           PROFILE CARD
+        ========================================== */
+
+        .resume-profile {
+            grid-column: 1 / -1;
+        }
+
+        .profile-content {
+            position: relative;
+
+            display: grid;
+
+            grid-template-columns:
+                auto 1fr;
+
+            gap: 22px;
+
+            align-items: center;
+        }
+
+        .profile-icon {
+            width: 75px;
+            height: 75px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 20px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.09),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            color: #ffffff;
+
+            font-size: 27px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.20);
+        }
+
+        .profile-content h3 {
+            margin-bottom: 6px;
+
+            font-size: 22px;
+        }
+
+        .profile-role {
+            color: #a9a9ff;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+        }
+
+        .profile-content p {
+            color: #888892;
+
+            font-size: 13px;
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================================
+           TIMELINE
+        ========================================== */
+
+        .resume-timeline {
+            position: relative;
+
+            display: grid;
+
+            gap: 28px;
+        }
+
+        .timeline-item {
+            position: relative;
+
+            padding-left: 28px;
+        }
+
+        .timeline-item::before {
+            content: "";
+
+            position: absolute;
+
+            left: 5px;
+            top: 7px;
+
+            width: 9px;
+            height: 9px;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 15px rgba(180, 180, 255, 0.65);
+        }
+
+        .timeline-item::after {
+            content: "";
+
+            position: absolute;
+
+            left: 9px;
+            top: 20px;
+
+            width: 1px;
+
+            height: calc(100% + 18px);
+
+            background:
+                rgba(255, 255, 255, 0.10);
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-item h3 {
+            font-size: 15px;
+
+            margin-bottom: 6px;
+        }
+
+        .timeline-meta {
+            color: #a9a9ff;
+
+            font-size: 11px;
+
+            margin-bottom: 10px;
+        }
+
+        .timeline-item p {
+            color: #85858e;
+
+            font-size: 13px;
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================================
+           SKILL TAGS
+        ========================================== */
+
+        .resume-tags {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 9px;
+        }
+
+        .resume-tag {
+            padding: 9px 13px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 9px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            color: #a5a5ae;
+
+            font-size: 11px;
+
+            transition:
+                0.3s ease;
+        }
+
+        .resume-tag:hover {
+            color: #ffffff;
+
+            border-color:
+                rgba(255, 255, 255, 0.18);
+
+            background:
+                rgba(255, 255, 255, 0.06);
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        /* =========================================
+           HIGHLIGHTS
+        ========================================== */
+
+        .resume-highlights {
+            display: grid;
+
+            gap: 12px;
+        }
+
+        .highlight-item {
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            padding: 13px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.06);
+
+            border-radius: 12px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .highlight-item i {
+            margin-top: 2px;
+
+            color: #a9a9ff;
+
+            font-size: 13px;
+        }
+
+        .highlight-item span {
+            color: #888892;
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =========================================
+           RESUME FOOTER CTA
+        ========================================== */
+
+        .resume-cta {
+            margin-top: 25px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+
+            padding: 28px 30px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.055),
+                    rgba(255, 255, 255, 0.02)
+                );
+        }
+
+        .resume-cta h2 {
+            font-size: 20px;
+
+            margin-bottom: 6px;
+        }
+
+        .resume-cta p {
+            color: #777780;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================== */
+
+        @media (max-width: 850px) {
+
+            .resume-page {
+                padding:
+                    60px 25px 80px;
+            }
+
+            .resume-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .resume-profile {
+                grid-column: auto;
+            }
+
+        }
+
+
+        @media (max-width: 550px) {
+
+            .resume-page {
+                padding:
+                    50px 18px 65px;
+            }
+
+            .resume-header h1 {
+                font-size: 44px;
+
+                letter-spacing: -2px;
+            }
+
+            .resume-header p {
+                font-size: 14px;
+            }
+
+            .resume-card {
+                padding: 24px;
+            }
+
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-icon {
+                width: 60px;
+                height: 60px;
+
+                border-radius: 16px;
+
+                font-size: 21px;
+            }
+
+            .resume-actions {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .resume-actions .btn {
+                width: 100%;
+            }
+
+            .resume-cta {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                padding: 24px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         BACKGROUND
+    ========================================== -->
+
+    <div class="background-glow"></div>
+
+
+    <!-- =========================================
+         NAVIGATION
+    ========================================== -->
+
+    <header class="navbar">
+
+        <!-- PREMIUM WORDMARK -->
+
+        <a href="index.html"
+           class="brand"
+           aria-label="Atul Mahaiskar - Home">
+
+            <span class="brand-name">
+
+                <span class="brand-atul">
+                    ATUL
+                </span>
+
+                <span class="brand-space"></span>
+
+                <span class="brand-mahaiskar">
+                    MAHAISKAR
+                </span>
+
+            </span>
+
+            <span class="brand-line"></span>
+
+        </a>
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="nav-links"
+             aria-label="Main navigation">
+
+            <a href="about.html">
+                About
+            </a>
+
+            <a href="skills.html">
+                Skills
+            </a>
+
+            <a href="projects.html">
+                Projects
+            </a>
+
+            <a href="resume.html"
+               class="active">
+                Resume
+            </a>
+
+            <a href="contact.html"
+               class="nav-contact">
+                Contact
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
+    <main class="resume-page">
+
+
+        <!-- =====================================
+             PAGE HEADER
+        ====================================== -->
+
+        <section class="resume-header">
+
+            <p class="resume-label">
+                MY RESUME
+            </p>
+
+            <h1>
+                Developer
+                <span>profile.</span>
+            </h1>
+
+            <p>
+                A focused overview of my development skills,
+                technical interests, projects and approach
+                to building practical software with Python,
+                backend technologies and AI.
+            </p>
+
+
+            <div class="resume-actions">
+
+                <!--
+                    Add your actual PDF later:
+                    assets/Atul-Mahaiskar-Resume.pdf
+                -->
+
+                <a href="assets/Atul-Mahaiskar-Resume.pdf"
+                   class="btn btn-primary"
+                   target="_blank">
+
+                    <i class="fa-solid fa-file-pdf"></i>
+                    &nbsp; View Resume
+
+                </a>
+
+
+                <a href="contact.html"
+                   class="btn btn-secondary">
+
+                    Get in Touch
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             RESUME GRID
+        ====================================== -->
+
+        <section class="resume-grid">
+
+
+            <!-- =================================
+                 PROFILE
+            ================================== -->
+
+            <article class="resume-card resume-profile">
+
+                <h2>
+                    <i class="fa-solid fa-user"></i>
+                    Profile
+                </h2>
+
+
+                <div class="profile-content">
+
+                    <div class="profile-icon">
+
+                        <i class="fa-solid fa-code"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <h3>
+                            Atul Mahaiskar
+                        </h3>
+
+                        <div class="profile-role">
+                            Python &amp; AI Developer
+                        </div>
+
+                        <p>
+                            Interested in building practical
+                            applications, backend systems,
+                            APIs and AI-powered software.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =================================
+                 EXPERIENCE
+            ================================== -->
+
+            <article class="resume-card">
+
+                <h2>
+                    <i class="fa-solid fa-briefcase"></i>
+                    Experience
+                </h2>
+
+
+                <div class="resume-timeline">
+
+
+                    <div class="timeline-item">
+
+                        <h3>
+                            Software Development
+                        </h3>
+
+                        <div class="timeline-meta">
+                            Python • Backend • Web
+                        </div>
+
+                        <p>
+                            Building practical applications
+                            and backend systems while developing
+                            stronger software engineering skills.
+                        </p>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <h3>
+                            AI &amp; Machine Learning Projects
+                        </h3>
+
+                        <div class="timeline-meta">
+                            Python • AI • ML
+                        </div>
+
+                        <p>
+                            Exploring AI-powered applications
+                            and applying machine learning concepts
+                            to practical projects.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =================================
+                 TECHNICAL SKILLS
+            ================================== -->
+
+            <article class="resume-card">
+
+                <h2>
+                    <i class="fa-solid fa-microchip"></i>
+                    Technical Skills
+                </h2>
+
+
+                <div class="resume-tags">
+
+                    <span class="resume-tag">
+                        Python
+                    </span>
+
+                    <span class="resume-tag">
+                        Flask
+                    </span>
+
+                    <span class="resume-tag">
+                        HTML
+                    </span>
+
+                    <span class="resume-tag">
+                        CSS
+                    </span>
+
+                    <span class="resume-tag">
+                        JavaScript
+                    </span>
+
+                    <span class="resume-tag">
+                        SQL
+                    </span>
+
+                    <span class="resume-tag">
+                        MySQL
+                    </span>
+
+                    <span class="resume-tag">
+                        MongoDB
+                    </span>
+
+                    <span class="resume-tag">
+                        REST APIs
+                    </span>
+
+                    <span class="resume-tag">
+                        Git
+                    </span>
+
+                    <span class="resume-tag">
+                        GitHub
+                    </span>
+
+                    <span class="resume-tag">
+                        Machine Learning
+                    </span>
+
+                    <span class="resume-tag">
+                        AI
+                    </span>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =================================
+                 EDUCATION
+            ================================== -->
+
+            <article class="resume-card">
+
+                <h2>
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    Education
+                </h2>
+
+
+                <div class="resume-timeline">
+
+
+                    <div class="timeline-item">
+
+                        <h3>
+                            Diploma in Engineering
+                        </h3>
+
+                        <div class="timeline-meta">
+                            Mechanical Engineering
+                        </div>
+
+                        <p>
+                            A technical education focused on developing practical knowledge in mechanical 
+                            engineering, manufacturing, design, and engineering fundamentals.
+                        </p>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <h3>
+                            B.Tech
+                        </h3>
+
+                        <div class="timeline-meta">
+                            Computer Science and Engineering
+                        </div>
+
+                        <p>
+                            A comprehensive technical education focused on developing strong foundations
+                             in computer science and engineering principles, 
+                            with hands-on experience in software development and problem-solving.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =================================
+                 DEVELOPMENT HIGHLIGHTS
+            ================================== -->
+
+            <article class="resume-card">
+
+                <h2>
+                    <i class="fa-solid fa-rocket"></i>
+                    Development Focus
+                </h2>
+
+
+                <div class="resume-highlights">
+
+
+                    <div class="highlight-item">
+
+                        <i class="fa-solid fa-check"></i>
+
+                        <span>
+                            Build practical software that solves
+                            real problems.
+                        </span>
+
+                    </div>
+
+
+                    <div class="highlight-item">
+
+                        <i class="fa-solid fa-check"></i>
+
+                        <span>
+                            Develop clean backend logic and APIs.
+                        </span>
+
+                    </div>
+
+
+                    <div class="highlight-item">
+
+                        <i class="fa-solid fa-check"></i>
+
+                        <span>
+                            Explore AI and machine learning
+                            applications.
+                        </span>
+
+                    </div>
+
+
+                    <div class="highlight-item">
+
+                        <i class="fa-solid fa-check"></i>
+
+                        <span>
+                            Continuously improve coding,
+                            debugging and engineering skills.
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+            </article>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             CTA
+        ====================================== -->
+
+        <section class="resume-cta">
+
+            <div>
+
+                <h2>
+                    Let's build something useful.
+                </h2>
+
+                <p>
+                    Interested in working together?
+                    Get in touch.
+                </p>
+
+            </div>
+
+
+            <a href="contact.html"
+               class="btn btn-primary">
+
+                Contact Me
+
+            </a>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>

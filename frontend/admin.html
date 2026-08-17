@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Atul Mahaiskar Portfolio Admin Dashboard">
+
+    <meta name="author"
+          content="Atul Mahaiskar">
+
+    <title>Admin Dashboard | Atul Mahaiskar</title>
+
+
+    <!-- GOOGLE FONT -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+
+    <!-- FONT AWESOME -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Inter", sans-serif;
+            color: #fff;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(120,120,255,.10),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(120,120,255,.08),
+                    transparent 35%
+                ),
+                #08080c;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        .navbar {
+            width: 100%;
+            min-height: 78px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 18px 5%;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.07);
+
+            background:
+                rgba(8,8,12,.78);
+
+            backdrop-filter: blur(20px);
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            text-decoration: none;
+            color: white;
+        }
+
+        .brand-name {
+            display: flex;
+            gap: 7px;
+
+            font-size: 17px;
+            font-weight: 700;
+
+            letter-spacing: 2px;
+        }
+
+        .brand-atul {
+            color: #fff;
+        }
+
+        .brand-mahaiskar {
+            color: #a9a9ff;
+        }
+
+        .brand-line {
+            display: block;
+
+            width: 100%;
+            height: 1px;
+
+            margin-top: 5px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #fff,
+                    #a9a9ff,
+                    transparent
+                );
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            padding: 8px 12px;
+
+            border-radius: 20px;
+
+            background:
+                rgba(100,255,150,.06);
+
+            border:
+                1px solid rgba(100,255,150,.12);
+
+            color: #9fdaa9;
+
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #73df87;
+
+            box-shadow:
+                0 0 10px rgba(115,223,135,.7);
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1250px;
+
+            margin: auto;
+
+            padding: 60px 25px 90px;
+        }
+
+
+        /* LOGIN */
+
+        .login-wrapper {
+            min-height: calc(100vh - 150px);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+
+            padding: 38px;
+
+            border:
+                1px solid rgba(255,255,255,.09);
+
+            border-radius: 24px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            backdrop-filter: blur(20px);
+
+            box-shadow:
+                0 30px 90px rgba(0,0,0,.35);
+        }
+
+        .login-icon {
+            width: 62px;
+            height: 62px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 18px;
+
+            margin-bottom: 22px;
+
+            background:
+                rgba(169,169,255,.10);
+
+            border:
+                1px solid rgba(169,169,255,.16);
+
+            color: #a9a9ff;
+
+            font-size: 22px;
+        }
+
+        .login-card h1 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .login-card > p {
+            color: #85858e;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            color: #a5a5ae;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+
+            left: 15px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #666671;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 49px;
+
+            padding: 0 15px 0 43px;
+
+            border:
+                1px solid rgba(255,255,255,.09);
+
+            border-radius: 11px;
+
+            outline: none;
+
+            background:
+                rgba(255,255,255,.035);
+
+            color: #fff;
+
+            font-size: 13px;
+        }
+
+        .form-group input:focus {
+            border-color:
+                rgba(169,169,255,.45);
+
+            box-shadow:
+                0 0 0 3px rgba(130,130,255,.06);
+        }
+
+        .form-group input::placeholder {
+            color: #5e5e68;
+        }
+
+        .btn {
+            width: 100%;
+            min-height: 49px;
+
+            border: none;
+            border-radius: 11px;
+
+            cursor: pointer;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            transition: .25s ease;
+        }
+
+        .btn-primary {
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff,
+                    #c7c7ff
+                );
+
+            color: #101014;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 30px rgba(160,160,255,.15);
+        }
+
+        .btn-secondary {
+            background:
+                rgba(255,255,255,.05);
+
+            border:
+                1px solid rgba(255,255,255,.09);
+
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background:
+                rgba(255,255,255,.08);
+        }
+
+
+        /* ALERT */
+
+        .alert {
+            display: none;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            margin-bottom: 18px;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+        .alert.error {
+            display: block;
+
+            color: #ffb0b0;
+
+            background:
+                rgba(255,70,70,.07);
+
+            border:
+                1px solid rgba(255,70,70,.15);
+        }
+
+        .alert.success {
+            display: block;
+
+            color: #a8e6b3;
+
+            background:
+                rgba(70,255,120,.06);
+
+            border:
+                1px solid rgba(70,255,120,.13);
+        }
+
+
+        /* OTP */
+
+        #otp-section {
+            display: none;
+        }
+
+        .otp-info {
+            display: flex;
+
+            gap: 10px;
+
+            padding: 13px;
+
+            margin-bottom: 20px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(169,169,255,.06);
+
+            border:
+                1px solid rgba(169,169,255,.10);
+
+            color: #9c9ca7;
+
+            font-size: 11px;
+
+            line-height: 1.6;
+        }
+
+        .otp-info i {
+            color: #a9a9ff;
+        }
+
+        #otp {
+            text-align: center;
+
+            letter-spacing: 7px;
+
+            font-size: 20px;
+
+            font-weight: 600;
+
+            padding-left: 20px;
+        }
+
+        .back-login {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .back-login button {
+            border: none;
+            background: none;
+
+            color: #777780;
+
+            cursor: pointer;
+
+            font-size: 11px;
+        }
+
+
+        /* DASHBOARD */
+
+        #dashboard {
+            display: none;
+        }
+
+        .dashboard-header {
+            display: flex;
+
+            align-items: flex-end;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-bottom: 35px;
+        }
+
+        .dashboard-label {
+            color: #85858e;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 12px;
+        }
+
+        .dashboard-header h1 {
+            font-size: clamp(38px,5vw,62px);
+
+            letter-spacing: -3px;
+        }
+
+        .dashboard-header h1 span {
+            color: #a9a9ff;
+        }
+
+        .dashboard-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .small-btn {
+            width: auto;
+
+            padding: 0 18px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+        }
+
+
+        /* STATS */
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            padding: 22px;
+
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            border-radius: 17px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+        .stat-card i {
+            color: #a9a9ff;
+
+            font-size: 17px;
+
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 27px;
+
+            font-weight: 700;
+
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #777780;
+            font-size: 11px;
+        }
+
+
+        /* MESSAGES */
+
+        .messages-card {
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            border-radius: 20px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            overflow: hidden;
+        }
+
+        .messages-header {
+            padding: 23px 25px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.07);
+        }
+
+        .messages-header h2 {
+            font-size: 18px;
+        }
+
+        .messages-header span {
+            color: #777780;
+            font-size: 11px;
+        }
+
+        .message-item {
+            padding: 24px 25px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.06);
+        }
+
+        .message-top {
+            display: flex;
+
+            align-items: flex-start;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 13px;
+        }
+
+        .message-person {
+            display: flex;
+
+            gap: 12px;
+
+            align-items: center;
+        }
+
+        .message-avatar {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background:
+                rgba(169,169,255,.08);
+
+            color: #a9a9ff;
+
+            font-weight: 600;
+        }
+
+        .message-name {
+            font-size: 13px;
+            font-weight: 600;
+
+            margin-bottom: 4px;
+        }
+
+        .message-email {
+            color: #777780;
+            font-size: 11px;
+        }
+
+        .message-date {
+            color: #5f5f68;
+            font-size: 10px;
+        }
+
+        .message-body {
+            color: #9999a3;
+
+            font-size: 13px;
+
+            line-height: 1.7;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+
+            margin-bottom: 15px;
+        }
+
+        .message-footer {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+        .read-badge {
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+
+            font-weight: 600;
+        }
+
+        .read-badge.unread {
+            color: #e3d9ff;
+
+            background:
+                rgba(169,169,255,.08);
+
+            border:
+                1px solid rgba(169,169,255,.12);
+        }
+
+        .read-badge.read {
+            color: #91c99b;
+
+            background:
+                rgba(80,220,100,.06);
+
+            border:
+                1px solid rgba(80,220,100,.10);
+        }
+
+        .read-btn {
+            width: auto;
+
+            min-height: 34px;
+
+            padding: 0 12px;
+
+            font-size: 10px;
+        }
+
+        .empty-state,
+        .loading {
+            padding: 60px 25px;
+
+            text-align: center;
+
+            color: #666671;
+
+            font-size: 12px;
+        }
+
+        .empty-state i,
+        .loading i {
+            display: block;
+
+            font-size: 30px;
+
+            margin-bottom: 15px;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width:700px) {
+
+            .navbar {
+                padding: 16px 18px;
+            }
+
+            .brand-name {
+                font-size: 14px;
+            }
+
+            .status {
+                display: none;
+            }
+
+            .page {
+                padding:
+                    35px 15px 60px;
+            }
+
+            .login-card {
+                padding: 28px 22px;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+            .dashboard-actions {
+                width: 100%;
+            }
+
+            .small-btn {
+                flex: 1;
+
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-top {
+                flex-direction: column;
+            }
+
+            .message-footer {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 12px;
+            }
+
+            .read-btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header class="navbar">
+
+    <a href="index.html"
+       class="brand">
+
+        <div class="brand-name">
+
+            <span class="brand-atul">
+                ATUL
+            </span>
+
+            <span class="brand-mahaiskar">
+                MAHAISKAR
+            </span>
+
+        </div>
+
+        <span class="brand-line"></span>
+
+    </a>
+
+
+    <div class="status">
+
+        <span class="status-dot"></span>
+
+        Backend Online
+
+    </div>
+
+</header>
+
+
+<main class="page">
+
+
+    <!-- =================================================
+         LOGIN
+    ================================================== -->
+
+    <section id="login-section"
+             class="login-wrapper">
+
+        <div class="login-card">
+
+            <div class="login-icon">
+
+                <i class="fa-solid fa-shield-halved"></i>
+
+            </div>
+
+
+            <h1>
+                Admin Login
+            </h1>
+
+
+            <p>
+                Secure access to your portfolio messages.
+                Sign in with your admin credentials and
+                complete email two-step verification.
+            </p>
+
+
+            <div id="login-alert"
+                 class="alert">
+            </div>
+
+
+            <!-- LOGIN -->
+
+            <div id="password-section">
+
+                <form id="login-form">
+
+                    <div class="form-group">
+
+                        <label for="username">
+                            ADMIN USERNAME
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="fa-solid fa-user"></i>
+
+                            <input
+                                type="text"
+                                id="username"
+                                placeholder="Enter admin username"
+                                autocomplete="username"
+                                required>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            PASSWORD
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="fa-solid fa-lock"></i>
+
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="Enter admin password"
+                                autocomplete="current-password"
+                                required>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="login-btn">
+
+                        <i class="fa-solid fa-right-to-bracket"></i>
+
+                        &nbsp; Continue
+
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- OTP -->
+
+            <div id="otp-section">
+
+                <div class="otp-info">
+
+                    <i class="fa-solid fa-envelope"></i>
+
+                    <span>
+                        A 6-digit verification code has
+                        been sent to your configured
+                        admin email address.
+                    </span>
+
+                </div>
+
+
+                <form id="otp-form">
+
+                    <div class="form-group">
+
+                        <label for="otp">
+                            VERIFICATION CODE
+                        </label>
+
+                        <input
+                            type="text"
+                            id="otp"
+                            inputmode="numeric"
+                            maxlength="6"
+                            placeholder="000000"
+                            autocomplete="one-time-code"
+                            required>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="verify-btn">
+
+                        <i class="fa-solid fa-shield-halved"></i>
+
+                        &nbsp; Verify & Login
+
+                    </button>
+
+                </form>
+
+
+                <div class="back-login">
+
+                    <button
+                        type="button"
+                        id="back-login">
+
+                        ← Back to login
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         DASHBOARD
+    ================================================== -->
+
+    <section id="dashboard">
+
+
+        <div class="dashboard-header">
+
+            <div>
+
+                <p class="dashboard-label">
+                    ADMIN DASHBOARD
+                </p>
+
+                <h1>
+                    Your
+                    <span>messages.</span>
+                </h1>
+
+            </div>
+
+
+            <div class="dashboard-actions">
+
+                <button
+                    class="btn btn-secondary small-btn"
+                    id="refresh-btn">
+
+                    <i class="fa-solid fa-rotate"></i>
+
+                    Refresh
+
+                </button>
+
+
+                <button
+                    class="btn btn-secondary small-btn"
+                    id="logout-btn">
+
+                    <i class="fa-solid fa-right-from-bracket"></i>
+
+                    Logout
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATS -->
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <i class="fa-solid fa-inbox"></i>
+
+                <div class="stat-number"
+                     id="total-count">
+                    0
+                </div>
+
+                <div class="stat-label">
+                    Total Messages
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <i class="fa-solid fa-envelope"></i>
+
+                <div class="stat-number"
+                     id="unread-count">
+                    0
+                </div>
+
+                <div class="stat-label">
+                    Unread Messages
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <i class="fa-solid fa-envelope-open"></i>
+
+                <div class="stat-number"
+                     id="read-count">
+                    0
+                </div>
+
+                <div class="stat-label">
+                    Read Messages
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MESSAGES -->
+
+        <div class="messages-card">
+
+            <div class="messages-header">
+
+                <h2>
+                    Contact Messages
+                </h2>
+
+                <span id="last-updated">
+                    Not loaded yet
+                </span>
+
+            </div>
+
+
+            <div id="messages-list">
+
+                <div class="loading">
+
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    Loading messages...
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+/* =====================================================
+   ATUL MAHAISKAR
+   ADMIN DASHBOARD JAVASCRIPT
+===================================================== */
+
+
+/* IMPORTANT
+   Flask is running here:
+   http://127.0.0.1:9000
+*/
+
+const API_BASE =
+    "http://127.0.0.1:9000";
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const loginSection =
+    document.getElementById("login-section");
+
+const passwordSection =
+    document.getElementById("password-section");
+
+const otpSection =
+    document.getElementById("otp-section");
+
+const dashboard =
+    document.getElementById("dashboard");
+
+const loginForm =
+    document.getElementById("login-form");
+
+const otpForm =
+    document.getElementById("otp-form");
+
+const loginAlert =
+    document.getElementById("login-alert");
+
+const usernameInput =
+    document.getElementById("username");
+
+const passwordInput =
+    document.getElementById("password");
+
+const otpInput =
+    document.getElementById("otp");
+
+const loginButton =
+    document.getElementById("login-btn");
+
+const verifyButton =
+    document.getElementById("verify-btn");
+
+const backLoginButton =
+    document.getElementById("back-login");
+
+const refreshButton =
+    document.getElementById("refresh-btn");
+
+const logoutButton =
+    document.getElementById("logout-btn");
+
+const messagesList =
+    document.getElementById("messages-list");
+
+const totalCount =
+    document.getElementById("total-count");
+
+const unreadCount =
+    document.getElementById("unread-count");
+
+const readCount =
+    document.getElementById("read-count");
+
+const lastUpdated =
+    document.getElementById("last-updated");
+
+
+/* =====================================================
+   ALERT
+===================================================== */
+
+function showAlert(message, type = "error") {
+
+    loginAlert.textContent = message;
+
+    loginAlert.className =
+        "alert " + type;
+
+}
+
+
+function hideAlert() {
+
+    loginAlert.textContent = "";
+
+    loginAlert.className =
+        "alert";
+
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+loginForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        hideAlert();
+
+        const username =
+            usernameInput.value.trim();
+
+        const password =
+            passwordInput.value;
+
+
+        if (!username || !password) {
+
+            showAlert(
+                "Please enter username and password."
+            );
+
+            return;
+        }
+
+
+        loginButton.disabled = true;
+
+        loginButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+
+
+        try {
+
+            const response =
+                await fetch(
+                    API_BASE + "/api/admin/login",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        credentials: "include",
+
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok || !data.success) {
+
+                showAlert(
+                    data.message ||
+                    "Invalid username or password."
+                );
+
+                return;
+            }
+
+
+            /* LOGIN SUCCESS */
+
+            passwordSection.style.display =
+                "none";
+
+            otpSection.style.display =
+                "block";
+
+            showAlert(
+                "OTP sent to your admin email.",
+                "success"
+            );
+
+            otpInput.focus();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showAlert(
+                "Unable to connect to the backend. Make sure Flask is running on port 9000."
+            );
+
+        } finally {
+
+            loginButton.disabled = false;
+
+            loginButton.innerHTML =
+                '<i class="fa-solid fa-right-to-bracket"></i> &nbsp; Continue';
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   OTP VERIFICATION
+===================================================== */
+
+otpForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        hideAlert();
+
+        const otp =
+            otpInput.value.trim();
+
+
+        if (!/^\d{6}$/.test(otp)) {
+
+            showAlert(
+                "Please enter the 6-digit OTP."
+            );
+
+            return;
+        }
+
+
+        verifyButton.disabled = true;
+
+        verifyButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
+
+        try {
+
+            const response =
+                await fetch(
+                    API_BASE +
+                    "/api/admin/verify-otp",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        credentials: "include",
+
+                        body: JSON.stringify({
+                            otp: otp
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok || !data.success) {
+
+                showAlert(
+                    data.message ||
+                    "Invalid OTP."
+                );
+
+                return;
+            }
+
+
+            /* AUTHENTICATED */
+
+            loginSection.style.display =
+                "none";
+
+            dashboard.style.display =
+                "block";
+
+
+            await loadMessages();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showAlert(
+                "Unable to connect to the backend."
+            );
+
+        } finally {
+
+            verifyButton.disabled = false;
+
+            verifyButton.innerHTML =
+                '<i class="fa-solid fa-shield-halved"></i> &nbsp; Verify & Login';
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   BACK TO LOGIN
+===================================================== */
+
+backLoginButton.addEventListener(
+    "click",
+    function() {
+
+        otpSection.style.display =
+            "none";
+
+        passwordSection.style.display =
+            "block";
+
+        otpInput.value = "";
+
+        hideAlert();
+
+    }
+);
+
+
+/* =====================================================
+   LOAD MESSAGES
+===================================================== */
+
+async function loadMessages() {
+
+    messagesList.innerHTML = `
+        <div class="loading">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Loading messages...
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE + "/api/messages",
+                {
+                    method: "GET",
+
+                    credentials: "include"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            if (response.status === 401) {
+
+                logout();
+
+                return;
+            }
+
+            throw new Error(
+                data.message ||
+                "Unable to load messages."
+            );
+        }
+
+
+        const messages =
+            Array.isArray(data.messages)
+                ? data.messages
+                : [];
+
+
+        renderMessages(messages);
+
+
+        lastUpdated.textContent =
+            "Updated " +
+            new Date().toLocaleTimeString();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        messagesList.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <p>
+                    Unable to load messages.
+                    Check that Flask is running.
+                </p>
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =====================================================
+   RENDER MESSAGES
+===================================================== */
+
+function renderMessages(messages) {
+
+    const total =
+        messages.length;
+
+
+    const unread =
+        messages.filter(
+            message =>
+                !Boolean(message.is_read)
+        ).length;
+
+
+    const read =
+        total - unread;
+
+
+    totalCount.textContent =
+        total;
+
+    unreadCount.textContent =
+        unread;
+
+    readCount.textContent =
+        read;
+
+
+    if (total === 0) {
+
+        messagesList.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-regular fa-envelope-open"></i>
+                <p>
+                    No contact messages yet.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    messagesList.innerHTML =
+        messages.map(
+            message =>
+                createMessageHTML(message)
+        ).join("");
+
+
+    document
+        .querySelectorAll(".read-btn")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    markAsRead(
+                        this.dataset.id
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+/* =====================================================
+   CREATE MESSAGE
+===================================================== */
+
+function createMessageHTML(message) {
+
+    const name =
+        escapeHTML(
+            message.name || "Unknown"
+        );
+
+    const email =
+        escapeHTML(
+            message.email || ""
+        );
+
+    const body =
+        escapeHTML(
+            message.message || ""
+        );
+
+    const date =
+        escapeHTML(
+            message.created_at || ""
+        );
+
+
+    const initial =
+        name.charAt(0).toUpperCase();
+
+
+    const isRead =
+        Boolean(message.is_read);
+
+
+    return `
+
+        <article class="message-item">
+
+            <div class="message-top">
+
+                <div class="message-person">
+
+                    <div class="message-avatar">
+                        ${initial}
+                    </div>
+
+                    <div>
+
+                        <div class="message-name">
+                            ${name}
+                        </div>
+
+                        <div class="message-email">
+                            ${email}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="message-date">
+                    ${date}
+                </div>
+
+            </div>
+
+
+            <div class="message-body">
+                ${body}
+            </div>
+
+
+            <div class="message-footer">
+
+                <span class="read-badge ${
+                    isRead
+                        ? "read"
+                        : "unread"
+                }">
+
+                    ${
+                        isRead
+                            ? "READ"
+                            : "UNREAD"
+                    }
+
+                </span>
+
+
+                ${
+                    !isRead
+                        ? `
+                            <button
+                                class="btn btn-secondary read-btn"
+                                data-id="${message.id}">
+
+                                Mark as Read
+
+                            </button>
+                          `
+                        : ""
+                }
+
+            </div>
+
+        </article>
+
+    `;
+
+}
+
+
+/* =====================================================
+   MARK MESSAGE AS READ
+===================================================== */
+
+async function markAsRead(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE +
+                "/api/messages/" +
+                id +
+                "/read",
+                {
+                    method: "PATCH",
+
+                    credentials: "include"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            alert(
+                data.message ||
+                "Unable to mark message as read."
+            );
+
+            return;
+        }
+
+
+        await loadMessages();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Unable to connect to the backend."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+logoutButton.addEventListener(
+    "click",
+    logout
+);
+
+
+async function logout() {
+
+    try {
+
+        await fetch(
+            API_BASE +
+            "/api/admin/logout",
+            {
+                method: "POST",
+
+                credentials: "include"
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+
+    dashboard.style.display =
+        "none";
+
+    loginSection.style.display =
+        "flex";
+
+    passwordSection.style.display =
+        "block";
+
+    otpSection.style.display =
+        "none";
+
+    usernameInput.value = "";
+
+    passwordInput.value = "";
+
+    otpInput.value = "";
+
+    hideAlert();
+
+}
+
+
+/* =====================================================
+   REFRESH
+===================================================== */
+
+refreshButton.addEventListener(
+    "click",
+    loadMessages
+);
+
+
+/* =====================================================
+   HTML ESCAPE
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   CHECK EXISTING SESSION
+===================================================== */
+
+async function checkAdminStatus() {
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE +
+                "/api/admin/status",
+                {
+                    method: "GET",
+
+                    credentials: "include"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.authenticated) {
+
+            loginSection.style.display =
+                "none";
+
+            dashboard.style.display =
+                "block";
+
+            await loadMessages();
+
+        }
+
+    } catch (error) {
+
+        console.log(
+            "Backend status check failed."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+checkAdminStatus();
+
+</script>
+
+
+</body>
+
+</html>
