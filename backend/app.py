@@ -1,16 +1,3 @@
-
-# ============================================================
-# ATUL MAHAISKAR PORTFOLIO
-# BACKEND - APP.PY
-#
-# Flask Backend
-# Contact Form
-# SQLite Database
-# Gmail Email Notification
-# Admin Login
-# Email OTP / 2-Step Verification
-# ============================================================
-
 import os
 import random
 import sqlite3
@@ -26,14 +13,14 @@ from dotenv import load_dotenv
 
 
 # ============================================================
-# LOAD ENVIRONMENT VARIABLES
+# ENVIRONMENT
 # ============================================================
 
 load_dotenv()
 
 
 # ============================================================
-# FLASK APPLICATION
+# FLASK APP
 # ============================================================
 
 app = Flask(__name__)
@@ -55,12 +42,10 @@ CORS(
 
 
 # ============================================================
-# PATH CONFIGURATION
+# DATABASE
 # ============================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE_DIR = os.path.join(
     BASE_DIR,
@@ -73,17 +58,24 @@ DATABASE_PATH = os.path.join(
 )
 
 
+# Make sure database folder exists
+os.makedirs(DATABASE_DIR, exist_ok=True)
+
+
 # ============================================================
-# SERVER CONFIGURATION
+# SERVER
 # ============================================================
 
 PORT = int(
-    os.getenv("PORT", "9000")
+    os.getenv(
+        "PORT",
+        "9000"
+    )
 )
 
 
 # ============================================================
-# EMAIL CONFIGURATION
+# SMTP / EMAIL CONFIGURATION
 # ============================================================
 
 SMTP_HOST = os.getenv(
@@ -92,7 +84,10 @@ SMTP_HOST = os.getenv(
 )
 
 SMTP_PORT = int(
-    os.getenv("SMTP_PORT", "587")
+    os.getenv(
+        "SMTP_PORT",
+        "587"
+    )
 )
 
 EMAIL_ADDRESS = os.getenv(
@@ -139,53 +134,13 @@ OTP_EXPIRY_MINUTES = int(
 
 
 # ============================================================
-# DATABASE INITIALIZATION
+# DATABASE HELPERS
 # ============================================================
 
-def initialize_database():
-
-    os.makedirs(
-        DATABASE_DIR,
-        exist_ok=True
-    )
-
-    connection = sqlite3.connect(
-        DATABASE_PATH
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            name TEXT NOT NULL,
-
-            email TEXT NOT NULL,
-
-            message TEXT NOT NULL,
-
-            created_at TEXT NOT NULL,
-
-            is_read INTEGER DEFAULT 0
-
-        )
-    """)
-
-    connection.commit()
-
-    connection.close()
-
-
-initialize_database()
-
-
-# ============================================================
-# DATABASE HELPER
-# ============================================================
-
-def get_database():
+def get_db():
+    """
+    Create and return a SQLite database connection.
+    """
 
     connection = sqlite3.connect(
         DATABASE_PATH
@@ -196,78 +151,157 @@ def get_database():
     return connection
 
 
+def initialize_database():
+    """
+    Create required database tables.
+    """
+
+    connection = get_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            is_read INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    connection.commit()
+
+    connection.close()
+
+
+# Initialize database when application starts
+initialize_database()
+
+
 # ============================================================
-# EMAIL HELPER
+# EMAIL FUNCTION
 # ============================================================
 
 def send_email(
-    recipient,
+    to_email,
     subject,
     body
 ):
+    """
+    Send email notification.
 
-    if not EMAIL_ADDRESS:
+    IMPORTANT:
+    - SMTP timeout is limited to 10 seconds.
+    - Email failure does NOT crash the API.
+    - Returns True when email succeeds.
+    - Returns False when email fails.
+    """
 
-        raise RuntimeError(
-            "EMAIL_ADDRESS is not configured."
+    try:
+
+        # ----------------------------------------------------
+        # Validate configuration
+        # ----------------------------------------------------
+
+        if not EMAIL_ADDRESS:
+
+            print(
+                "EMAIL_ADDRESS is not configured."
+            )
+
+            return False
+
+        if not EMAIL_APP_PASSWORD:
+
+            print(
+                "EMAIL_APP_PASSWORD is not configured."
+            )
+
+            return False
+
+        if not to_email:
+
+            print(
+                "Recipient email is not configured."
+            )
+
+            return False
+
+
+        # ----------------------------------------------------
+        # Create email
+        # ----------------------------------------------------
+
+        message = EmailMessage()
+
+        message["From"] = EMAIL_ADDRESS
+
+        message["To"] = to_email
+
+        message["Subject"] = subject
+
+        message.set_content(
+            body
         )
 
-    if not EMAIL_APP_PASSWORD:
 
-        raise RuntimeError(
-            "EMAIL_APP_PASSWORD is not configured."
+        # ----------------------------------------------------
+        # SMTP connection
+        # ----------------------------------------------------
+
+        print(
+            f"Connecting to SMTP server "
+            f"{SMTP_HOST}:{SMTP_PORT}"
         )
 
-    email = EmailMessage()
+        with smtplib.SMTP(
+            SMTP_HOST,
+            SMTP_PORT,
+            timeout=10
+        ) as server:
 
-    email["From"] = EMAIL_ADDRESS
-    email["To"] = recipient
-    email["Subject"] = subject
+            server.ehlo()
 
-    email.set_content(body)
+            server.starttls()
 
-    with smtplib.SMTP(
-        SMTP_HOST,
-        SMTP_PORT
-    ) as server:
+            server.ehlo()
 
-        server.starttls()
+            server.login(
+                EMAIL_ADDRESS,
+                EMAIL_APP_PASSWORD
+            )
 
-        server.login(
-            EMAIL_ADDRESS,
-            EMAIL_APP_PASSWORD
+            server.send_message(
+                message
+            )
+
+
+        print(
+            "Email notification sent successfully."
         )
 
-        server.send_message(email)
+        return True
+
+
+    except Exception as error:
+
+        print(
+            "Email sending failed:"
+        )
+
+        print(
+            f"{type(error).__name__}: {error}"
+        )
+
+        return False
 
 
 # ============================================================
-# EMAIL VALIDATION
-# ============================================================
-
-def valid_email(email):
-
-    if not email:
-        return False
-
-    if "@" not in email:
-        return False
-
-    parts = email.split("@")
-
-    if len(parts) != 2:
-        return False
-
-    domain = parts[1]
-
-    if "." not in domain:
-        return False
-
-    return True
-
-
-# ============================================================
-# HOME / API STATUS
+# HEALTH CHECK
 # ============================================================
 
 @app.route(
@@ -276,26 +310,59 @@ def valid_email(email):
 )
 def home():
 
-    return jsonify({
+    return jsonify(
+        {
+            "success": True,
+            "message": "Atul Mahaiskar Portfolio Backend is running.",
+            "server": "Flask"
+        }
+    ), 200
 
-        "status": "online",
 
-        "message":
-            "Atul Mahaiskar Portfolio API",
+@app.route(
+    "/api/health",
+    methods=["GET"]
+)
+def health():
 
-        "version":
-            "1.0",
+    database_status = False
 
-        "database":
-            "connected"
+    try:
 
-    }), 200
+        connection = get_db()
+
+        connection.execute(
+            "SELECT 1"
+        )
+
+        connection.close()
+
+        database_status = True
+
+    except Exception as error:
+
+        print(
+            f"Database health error: {error}"
+        )
+
+
+    return jsonify(
+        {
+            "success": True,
+            "status": "healthy",
+            "server": "Flask",
+            "database": "SQLite" if database_status else "SQLite error",
+            "email": bool(
+                EMAIL_ADDRESS
+                and EMAIL_APP_PASSWORD
+            ),
+            "otp": True
+        }
+    ), 200
 
 
 # ============================================================
 # CONTACT FORM
-#
-# POST /api/contact
 # ============================================================
 
 @app.route(
@@ -306,143 +373,119 @@ def contact():
 
     try:
 
+        # ----------------------------------------------------
+        # Read request data
+        # ----------------------------------------------------
+
         data = request.get_json(
             silent=True
         )
 
         if not data:
 
-            return jsonify({
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid request data."
+                }
+            ), 400
 
-                "success": False,
-
-                "message":
-                    "Invalid request. JSON data is required."
-
-            }), 400
-
-
-        # ----------------------------------------------------
-        # GET FORM DATA
-        # ----------------------------------------------------
 
         name = str(
-            data.get("name", "")
+            data.get(
+                "name",
+                ""
+            )
         ).strip()
+
 
         email = str(
-            data.get("email", "")
+            data.get(
+                "email",
+                ""
+            )
         ).strip()
 
+
         message = str(
-            data.get("message", "")
+            data.get(
+                "message",
+                ""
+            )
         ).strip()
 
 
         # ----------------------------------------------------
-        # VALIDATION
+        # Validation
         # ----------------------------------------------------
 
         if not name:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Name is required."
-
-            }), 400
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Name is required."
+                }
+            ), 400
 
 
-        if not valid_email(email):
+        if not email:
 
-            return jsonify({
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Email is required."
+                }
+            ), 400
 
-                "success": False,
 
-                "message":
-                    "Valid email is required."
+        if "@" not in email or "." not in email:
 
-            }), 400
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Please enter a valid email address."
+                }
+            ), 400
 
 
         if not message:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Message is required."
-
-            }), 400
-
-
-        if len(name) > 100:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Name is too long."
-
-            }), 400
-
-
-        if len(email) > 254:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Email address is too long."
-
-            }), 400
-
-
-        if len(message) > 5000:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Message is too long."
-
-            }), 400
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Message is required."
+                }
+            ), 400
 
 
         # ----------------------------------------------------
-        # SAVE MESSAGE TO DATABASE
+        # Save message to SQLite FIRST
         # ----------------------------------------------------
 
-        connection = get_database()
+        created_at = datetime.utcnow().isoformat()
+
+        connection = get_db()
 
         cursor = connection.cursor()
 
-        created_at = datetime.now().isoformat(
-            timespec="seconds"
-        )
-
         cursor.execute(
             """
-            INSERT INTO messages
-            (
+            INSERT INTO messages (
                 name,
                 email,
                 message,
-                created_at
+                created_at,
+                is_read
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
                 name,
                 email,
                 message,
-                created_at
+                created_at,
+                0
             )
         )
 
@@ -454,24 +497,16 @@ def contact():
 
 
         # ----------------------------------------------------
-        # EMAIL NOTIFICATION
+        # Prepare notification email
         # ----------------------------------------------------
 
-        email_sent = False
-
         email_subject = (
-            "New Portfolio Message - "
-            f"{name}"
+            f"New Portfolio Contact Message from {name}"
         )
 
+
         email_body = f"""
-Atul Mahaiskar Portfolio
-
-You received a new message from your portfolio.
-
-----------------------------------------
-CONTACT DETAILS
-----------------------------------------
+New message received from your portfolio website.
 
 Name:
 {name}
@@ -479,86 +514,69 @@ Name:
 Email:
 {email}
 
+Message:
+{message}
+
 Message ID:
 {message_id}
 
-Date:
+Received:
 {created_at}
-
-----------------------------------------
-MESSAGE
-----------------------------------------
-
-{message}
-
-----------------------------------------
-Atul Mahaiskar Portfolio
-----------------------------------------
 """
 
-        try:
 
-            if ADMIN_EMAIL:
+        # ----------------------------------------------------
+        # Send email
+        #
+        # IMPORTANT:
+        # Email failure does NOT make contact request fail.
+        # ----------------------------------------------------
 
-                send_email(
-                    ADMIN_EMAIL,
-                    email_subject,
-                    email_body
-                )
-
-                email_sent = True
-
-        except Exception as email_error:
-
-            print(
-                "Email notification error:",
-                email_error
-            )
+        email_sent = send_email(
+            ADMIN_EMAIL,
+            email_subject,
+            email_body
+        )
 
 
         # ----------------------------------------------------
-        # RESPONSE
+        # Always return success after database save
         # ----------------------------------------------------
 
-        return jsonify({
-
-            "success": True,
-
-            "message":
-                "Your message was received successfully.",
-
-            "id":
-                message_id,
-
-            "email_notification":
-                email_sent
-
-        }), 201
+        return jsonify(
+            {
+                "success": True,
+                "message": (
+                    "Your message has been sent successfully."
+                ),
+                "message_id": message_id,
+                "email_sent": email_sent
+            }
+        ), 200
 
 
     except Exception as error:
 
         print(
-            "Contact API error:",
-            error
+            "Contact endpoint error:"
         )
 
-        return jsonify({
+        print(
+            f"{type(error).__name__}: {error}"
+        )
 
-            "success": False,
-
-            "message":
-                "An internal server error occurred."
-
-        }), 500
+        return jsonify(
+            {
+                "success": False,
+                "message": (
+                    "Unable to process your message right now."
+                )
+            }
+        ), 500
 
 
 # ============================================================
-# ADMIN LOGIN - STEP 1
-#
-# POST /api/admin/login
-#
-# Username + Password
+# ADMIN LOGIN
 # ============================================================
 
 @app.route(
@@ -575,87 +593,81 @@ def admin_login():
 
         if not data:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Invalid request."
-
-            }), 400
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid request data."
+                }
+            ), 400
 
 
         username = str(
-            data.get("username", "")
+            data.get(
+                "username",
+                ""
+            )
         ).strip()
 
+
         password = str(
-            data.get("password", "")
+            data.get(
+                "password",
+                ""
+            )
         )
 
 
         # ----------------------------------------------------
-        # CHECK USERNAME
+        # Validate username
         # ----------------------------------------------------
 
         if username != ADMIN_USERNAME:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Invalid username or password."
-
-            }), 401
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid username or password."
+                }
+            ), 401
 
 
         # ----------------------------------------------------
-        # CHECK PASSWORD CONFIGURATION
+        # Validate password hash configuration
         # ----------------------------------------------------
 
         if not ADMIN_PASSWORD_HASH:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Admin password is not configured."
-
-            }), 500
-
-
-        # ----------------------------------------------------
-        # CHECK PASSWORD
-        # ----------------------------------------------------
-
-        try:
-
-            password_valid = check_password_hash(
-                ADMIN_PASSWORD_HASH,
-                password
+            print(
+                "ADMIN_PASSWORD_HASH is not configured."
             )
 
-        except Exception:
-
-            password_valid = False
-
-
-        if not password_valid:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Invalid username or password."
-
-            }), 401
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Admin authentication is not configured."
+                }
+            ), 500
 
 
         # ----------------------------------------------------
-        # GENERATE OTP
+        # Validate password
+        # ----------------------------------------------------
+
+        if not check_password_hash(
+            ADMIN_PASSWORD_HASH,
+            password
+        ):
+
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid username or password."
+                }
+            ), 401
+
+
+        # ----------------------------------------------------
+        # Generate OTP
         # ----------------------------------------------------
 
         otp = str(
@@ -665,8 +677,9 @@ def admin_login():
             )
         )
 
-        expires_at = (
-            datetime.now()
+
+        otp_expires = (
+            datetime.utcnow()
             + timedelta(
                 minutes=OTP_EXPIRY_MINUTES
             )
@@ -674,54 +687,50 @@ def admin_login():
 
 
         # ----------------------------------------------------
-        # STORE OTP IN SESSION
+        # Store OTP in session
         # ----------------------------------------------------
 
         session["admin_otp"] = otp
 
         session["admin_otp_expires"] = (
-            expires_at.isoformat()
+            otp_expires.isoformat()
         )
 
-        session["admin_authenticated"] = False
+        session["admin_otp_verified"] = False
 
 
         # ----------------------------------------------------
-        # SEND OTP EMAIL
+        # OTP email
         # ----------------------------------------------------
 
         otp_subject = (
-            "Atul Mahaiskar Portfolio - "
-            "Admin Verification Code"
+            "Portfolio Admin Login OTP"
         )
 
-        otp_body = f"""
-Atul Mahaiskar Portfolio
 
-Your admin verification code is:
+        otp_body = f"""
+Your Portfolio Admin Login OTP is:
 
 {otp}
 
-This OTP will expire in
-{OTP_EXPIRY_MINUTES} minutes.
+This OTP will expire in {OTP_EXPIRY_MINUTES} minutes.
 
-If you did not request this code,
-please ignore this email.
-
-----------------------------------------
-Admin Security
-----------------------------------------
+If you did not request this login, please ignore this email.
 """
 
-        try:
 
-            send_email(
-                ADMIN_EMAIL,
-                otp_subject,
-                otp_body
-            )
+        email_sent = send_email(
+            ADMIN_EMAIL,
+            otp_subject,
+            otp_body
+        )
 
-        except Exception as email_error:
+
+        # ----------------------------------------------------
+        # Email failed
+        # ----------------------------------------------------
+
+        if not email_sent:
 
             session.pop(
                 "admin_otp",
@@ -733,59 +742,53 @@ Admin Security
                 None
             )
 
-            print(
-                "OTP email error:",
-                email_error
+            session.pop(
+                "admin_otp_verified",
+                None
             )
 
-            return jsonify({
+            return jsonify(
+                {
+                    "success": False,
+                    "message": (
+                        "Unable to send OTP email. "
+                        "Please check the email configuration."
+                    )
+                }
+            ), 500
 
-                "success": False,
 
-                "message":
-                    "Unable to send OTP. Check email configuration."
-
-            }), 500
-
-
-        # ----------------------------------------------------
-        # RESPONSE
-        # ----------------------------------------------------
-
-        return jsonify({
-
-            "success": True,
-
-            "message":
-                "OTP sent to your admin email.",
-
-            "requires_otp":
-                True
-
-        }), 200
+        return jsonify(
+            {
+                "success": True,
+                "message": (
+                    "OTP sent successfully."
+                ),
+                "otp_required": True
+            }
+        ), 200
 
 
     except Exception as error:
 
         print(
-            "Admin login error:",
-            error
+            "Admin login error:"
         )
 
-        return jsonify({
+        print(
+            f"{type(error).__name__}: {error}"
+        )
 
-            "success": False,
-
-            "message":
-                "Login failed."
-
-        }), 500
+        return jsonify(
+            {
+                "success": False,
+                "message": "Unable to process admin login."
+            }
+        ), 500
 
 
 # ============================================================
-# VERIFY OTP - STEP 2
-#
-# POST /api/admin/verify-otp
+# VERIFY OTP
 # ============================================================
 
 @app.route(
@@ -802,56 +805,68 @@ def verify_otp():
 
         if not data:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Invalid request."
-
-            }), 400
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid request data."
+                }
+            ), 400
 
 
         entered_otp = str(
-            data.get("otp", "")
+            data.get(
+                "otp",
+                ""
+            )
         ).strip()
 
 
-        saved_otp = session.get(
+        stored_otp = session.get(
             "admin_otp"
         )
 
-        expiry = session.get(
+        expiry_string = session.get(
             "admin_otp_expires"
         )
 
 
         # ----------------------------------------------------
-        # CHECK OTP
+        # Check OTP existence
         # ----------------------------------------------------
 
-        if not saved_otp or not expiry:
+        if not stored_otp or not expiry_string:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "OTP expired or unavailable."
-
-            }), 401
-
-
-        expiry_time = datetime.fromisoformat(
-            expiry
-        )
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "OTP expired or not found."
+                }
+            ), 401
 
 
         # ----------------------------------------------------
-        # CHECK EXPIRATION
+        # Check expiry
         # ----------------------------------------------------
 
-        if datetime.now() > expiry_time:
+        try:
+
+            expiry_time = datetime.fromisoformat(
+                expiry_string
+            )
+
+        except ValueError:
+
+            session.clear()
+
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid OTP session."
+                }
+            ), 401
+
+
+        if datetime.utcnow() > expiry_time:
 
             session.pop(
                 "admin_otp",
@@ -863,38 +878,43 @@ def verify_otp():
                 None
             )
 
-            return jsonify({
+            session.pop(
+                "admin_otp_verified",
+                None
+            )
 
-                "success": False,
-
-                "message":
-                    "OTP has expired."
-
-            }), 401
-
-
-        # ----------------------------------------------------
-        # CHECK OTP
-        # ----------------------------------------------------
-
-        if entered_otp != saved_otp:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Invalid OTP."
-
-            }), 401
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "OTP has expired."
+                }
+            ), 401
 
 
         # ----------------------------------------------------
-        # AUTHENTICATION SUCCESS
+        # Check OTP
+        # ----------------------------------------------------
+
+        if entered_otp != stored_otp:
+
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Invalid OTP."
+                }
+            ), 401
+
+
+        # ----------------------------------------------------
+        # Authenticate admin
         # ----------------------------------------------------
 
         session["admin_authenticated"] = True
 
+        session["admin_otp_verified"] = True
+
+
+        # Remove OTP after successful verification
         session.pop(
             "admin_otp",
             None
@@ -906,49 +926,60 @@ def verify_otp():
         )
 
 
-        return jsonify({
-
-            "success": True,
-
-            "message":
-                "Two-step verification successful."
-
-        }), 200
+        return jsonify(
+            {
+                "success": True,
+                "message": "Admin authentication successful."
+            }
+        ), 200
 
 
     except Exception as error:
 
         print(
-            "OTP verification error:",
-            error
+            "OTP verification error:"
         )
 
-        return jsonify({
+        print(
+            f"{type(error).__name__}: {error}"
+        )
 
-            "success": False,
-
-            "message":
-                "OTP verification failed."
-
-        }), 500
+        return jsonify(
+            {
+                "success": False,
+                "message": "Unable to verify OTP."
+            }
+        ), 500
 
 
 # ============================================================
-# ADMIN AUTHENTICATION CHECK
+# ADMIN STATUS
 # ============================================================
 
-def admin_required():
+@app.route(
+    "/api/admin/status",
+    methods=["GET"]
+)
+def admin_status():
 
-    return session.get(
+    authenticated = session.get(
         "admin_authenticated",
         False
     )
 
 
+    return jsonify(
+        {
+            "success": True,
+            "authenticated": bool(
+                authenticated
+            )
+        }
+    ), 200
+
+
 # ============================================================
-# GET ALL MESSAGES
-#
-# GET /api/messages
+# GET MESSAGES
 # ============================================================
 
 @app.route(
@@ -957,21 +988,30 @@ def admin_required():
 )
 def get_messages():
 
-    if not admin_required():
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "Admin authentication required."
-
-        }), 401
-
-
     try:
 
-        connection = get_database()
+        # ----------------------------------------------------
+        # Admin authentication
+        # ----------------------------------------------------
+
+        if not session.get(
+            "admin_authenticated",
+            False
+        ):
+
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Unauthorized."
+                }
+            ), 401
+
+
+        # ----------------------------------------------------
+        # Fetch messages
+        # ----------------------------------------------------
+
+        connection = get_db()
 
         cursor = connection.cursor()
 
@@ -996,86 +1036,85 @@ def get_messages():
 
         messages = []
 
-
         for row in rows:
 
-            messages.append({
-
-                "id":
-                    row["id"],
-
-                "name":
-                    row["name"],
-
-                "email":
-                    row["email"],
-
-                "message":
-                    row["message"],
-
-                "created_at":
-                    row["created_at"],
-
-                "is_read":
-                    bool(row["is_read"])
-
-            })
+            messages.append(
+                {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "email": row["email"],
+                    "message": row["message"],
+                    "created_at": row["created_at"],
+                    "is_read": bool(
+                        row["is_read"]
+                    )
+                }
+            )
 
 
-        return jsonify({
-
-            "success": True,
-
-            "messages":
-                messages
-
-        }), 200
+        return jsonify(
+            {
+                "success": True,
+                "messages": messages,
+                "count": len(messages)
+            }
+        ), 200
 
 
     except Exception as error:
 
         print(
-            "Get messages error:",
-            error
+            "Get messages error:"
         )
 
-        return jsonify({
+        print(
+            f"{type(error).__name__}: {error}"
+        )
 
-            "success": False,
-
-            "message":
-                "Unable to retrieve messages."
-
-        }), 500
+        return jsonify(
+            {
+                "success": False,
+                "message": "Unable to load messages."
+            }
+        ), 500
 
 
 # ============================================================
 # MARK MESSAGE AS READ
-#
-# PATCH /api/messages/<message_id>/read
 # ============================================================
 
 @app.route(
     "/api/messages/<int:message_id>/read",
     methods=["PATCH"]
 )
-def mark_message_read(message_id):
-
-    if not admin_required():
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "Admin authentication required."
-
-        }), 401
-
+def mark_message_read(
+    message_id
+):
 
     try:
 
-        connection = get_database()
+        # ----------------------------------------------------
+        # Admin authentication
+        # ----------------------------------------------------
+
+        if not session.get(
+            "admin_authenticated",
+            False
+        ):
+
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Unauthorized."
+                }
+            ), 401
+
+
+        # ----------------------------------------------------
+        # Update message
+        # ----------------------------------------------------
+
+        connection = get_db()
 
         cursor = connection.cursor()
 
@@ -1085,59 +1124,56 @@ def mark_message_read(message_id):
             SET is_read = 1
             WHERE id = ?
             """,
-            (message_id,)
+            (
+                message_id,
+            )
         )
 
         connection.commit()
 
-        updated = cursor.rowcount
+        updated_rows = cursor.rowcount
 
         connection.close()
 
 
-        if updated == 0:
+        if updated_rows == 0:
 
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Message not found."
-
-            }), 404
+            return jsonify(
+                {
+                    "success": False,
+                    "message": "Message not found."
+                }
+            ), 404
 
 
-        return jsonify({
-
-            "success": True,
-
-            "message":
-                "Message marked as read."
-
-        }), 200
+        return jsonify(
+            {
+                "success": True,
+                "message": "Message marked as read."
+            }
+        ), 200
 
 
     except Exception as error:
 
         print(
-            "Mark read error:",
-            error
+            "Mark message read error:"
         )
 
-        return jsonify({
+        print(
+            f"{type(error).__name__}: {error}"
+        )
 
-            "success": False,
-
-            "message":
-                "Unable to update message."
-
-        }), 500
+        return jsonify(
+            {
+                "success": False,
+                "message": "Unable to update message."
+            }
+        ), 500
 
 
 # ============================================================
 # ADMIN LOGOUT
-#
-# POST /api/admin/logout
 # ============================================================
 
 @app.route(
@@ -1148,73 +1184,13 @@ def admin_logout():
 
     session.clear()
 
-    return jsonify({
 
-        "success": True,
-
-        "message":
-            "Logged out successfully."
-
-    }), 200
-
-
-# ============================================================
-# ADMIN SESSION STATUS
-#
-# GET /api/admin/status
-# ============================================================
-
-@app.route(
-    "/api/admin/status",
-    methods=["GET"]
-)
-def admin_status():
-
-    authenticated = admin_required()
-
-    return jsonify({
-
-        "authenticated":
-            authenticated
-
-    }), 200
-
-
-# ============================================================
-# HEALTH CHECK
-#
-# GET /api/health
-# ============================================================
-
-@app.route(
-    "/api/health",
-    methods=["GET"]
-)
-def health_check():
-
-    return jsonify({
-
-        "success": True,
-
-        "status":
-            "healthy",
-
-        "server":
-            "Flask",
-
-        "database":
-            "SQLite",
-
-        "email":
-            bool(
-                EMAIL_ADDRESS
-                and EMAIL_APP_PASSWORD
-            ),
-
-        "otp":
-            True
-
-    }), 200
+    return jsonify(
+        {
+            "success": True,
+            "message": "Logged out successfully."
+        }
+    ), 200
 
 
 # ============================================================
@@ -1224,75 +1200,33 @@ def health_check():
 @app.errorhandler(404)
 def not_found(error):
 
-    return jsonify({
-
-        "success": False,
-
-        "message":
-            "API endpoint not found."
-
-    }), 404
+    return jsonify(
+        {
+            "success": False,
+            "message": "Endpoint not found."
+        }
+    ), 404
 
 
-@app.errorhandler(405)
-def method_not_allowed(error):
+@app.errorhandler(500)
+def internal_error(error):
 
-    return jsonify({
-
-        "success": False,
-
-        "message":
-            "Method not allowed for this endpoint."
-
-    }), 405
+    return jsonify(
+        {
+            "success": False,
+            "message": "Internal server error."
+        }
+    ), 500
 
 
 # ============================================================
-# RUN SERVER
+# APPLICATION START
 # ============================================================
 
 if __name__ == "__main__":
-
-    print()
-    print("=" * 65)
-    print(" ATUL MAHAISKAR PORTFOLIO")
-    print(" Flask Backend")
-    print("=" * 65)
-    print()
-
-    print(
-        f" Server: http://127.0.0.1:{PORT}"
-    )
-
-    print(
-        f" Database: {DATABASE_PATH}"
-    )
-
-    print()
-
-    print(" API ENDPOINTS")
-    print("-" * 65)
-
-    print(" GET   /")
-    print(" GET   /api/health")
-    print(" POST  /api/contact")
-    print(" POST  /api/admin/login")
-    print(" POST  /api/admin/verify-otp")
-    print(" GET   /api/admin/status")
-    print(" GET   /api/messages")
-    print(" PATCH /api/messages/<id>/read")
-    print(" POST  /api/admin/logout")
-
-    print()
-
-    print("=" * 65)
-    print(" Server starting...")
-    print("=" * 65)
-    print()
-
 
     app.run(
         host="0.0.0.0",
         port=PORT,
         debug=False
-    );
+    )
