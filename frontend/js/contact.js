@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // FLASK API
     // ========================================================
 
-    const API_URL = "http://127.0.0.1:9000/api/contact";
+    const API_URL ="https://atul-mahaiskar-backend.onrender.com/api/contact";
 
 
     // ========================================================
