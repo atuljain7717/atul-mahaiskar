@@ -36,9 +36,6 @@ app.secret_key = os.getenv(
 # SESSION CONFIGURATION
 # ============================================================
 
-# Required when frontend is hosted on Vercel
-# and backend is hosted on Render.
-
 app.config.update(
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
@@ -58,9 +55,7 @@ FRONTEND_ORIGIN = os.getenv(
 
 CORS(
     app,
-    origins=[
-        FRONTEND_ORIGIN
-    ],
+    origins=[FRONTEND_ORIGIN],
     supports_credentials=True
 )
 
@@ -83,8 +78,6 @@ DATABASE_PATH = os.path.join(
     "messages.db"
 )
 
-
-# Make sure database directory exists
 os.makedirs(
     DATABASE_DIR,
     exist_ok=True
@@ -155,9 +148,6 @@ OTP_EXPIRY_MINUTES = int(
 # ============================================================
 
 def get_db():
-    """
-    Create and return a SQLite database connection.
-    """
 
     connection = sqlite3.connect(
         DATABASE_PATH
@@ -169,9 +159,6 @@ def get_db():
 
 
 def initialize_database():
-    """
-    Create required database tables.
-    """
 
     connection = get_db()
 
@@ -195,12 +182,11 @@ def initialize_database():
     connection.close()
 
 
-# Initialize database
 initialize_database()
 
 
 # ============================================================
-# RESEND EMAIL FUNCTION
+# RESEND EMAIL SERVICE
 # ============================================================
 
 def send_email(
@@ -209,70 +195,78 @@ def send_email(
     body
 ):
     """
-    Send email using Resend HTTPS API.
+    Send an email using the Resend HTTPS API.
 
-    Important:
-    - Does NOT use Gmail SMTP.
-    - Does NOT require SMTP port 587.
-    - Uses HTTPS.
-    - Email failure does NOT crash the API.
-    - Returns True when email succeeds.
-    - Returns False when email fails.
+    Returns:
+
+        {
+            "success": True/False,
+            "email_id": "...",
+            "error": None
+        }
+
+    The browser is NOT involved in this process.
     """
 
     try:
 
         # ----------------------------------------------------
-        # Validate API key
+        # Validate configuration
         # ----------------------------------------------------
 
         if not RESEND_API_KEY:
 
             print(
-                "RESEND_API_KEY is not configured."
+                "RESEND ERROR: API key is missing."
             )
 
-            return False
+            return {
+                "success": False,
+                "email_id": None,
+                "error": (
+                    "RESEND_API_KEY is not configured."
+                )
+            }
 
-
-        # ----------------------------------------------------
-        # Validate sender
-        # ----------------------------------------------------
 
         if not RESEND_FROM_EMAIL:
 
             print(
-                "RESEND_FROM_EMAIL is not configured."
+                "RESEND ERROR: sender email is missing."
             )
 
-            return False
+            return {
+                "success": False,
+                "email_id": None,
+                "error": (
+                    "RESEND_FROM_EMAIL is not configured."
+                )
+            }
 
-
-        # ----------------------------------------------------
-        # Validate recipient
-        # ----------------------------------------------------
 
         if not to_email:
 
             print(
-                "Recipient email is not configured."
+                "RESEND ERROR: recipient email is missing."
             )
 
-            return False
+            return {
+                "success": False,
+                "email_id": None,
+                "error": (
+                    "ADMIN_EMAIL is not configured."
+                )
+            }
 
 
         # ----------------------------------------------------
-        # Resend API endpoint
+        # Resend API
         # ----------------------------------------------------
 
         resend_url = (
             "https://api.resend.com/emails"
         )
 
-
-        # ----------------------------------------------------
-        # Email payload
-        # ----------------------------------------------------
 
         payload = {
             "from": RESEND_FROM_EMAIL,
@@ -290,10 +284,6 @@ def send_email(
             "utf-8"
         )
 
-
-        # ----------------------------------------------------
-        # HTTP request
-        # ----------------------------------------------------
 
         request_object = urllib.request.Request(
             resend_url,
@@ -319,116 +309,230 @@ def send_email(
 
 
         # ----------------------------------------------------
+        # Logging
+        # ----------------------------------------------------
+
+        print("")
+        print(
+            "========================================"
+        )
+
+        print(
+            "RESEND EMAIL REQUEST"
+        )
+
+        print(
+            f"From: {RESEND_FROM_EMAIL}"
+        )
+
+        print(
+            f"To: {to_email}"
+        )
+
+        print(
+            f"Subject: {subject}"
+        )
+
+        print(
+            "========================================"
+        )
+
+
+        # ----------------------------------------------------
         # Send request
         # ----------------------------------------------------
 
-        print(
-            "Sending email using Resend..."
-        )
-
-        print(
-            f"Recipient: {to_email}"
-        )
-
-
         with urllib.request.urlopen(
             request_object,
-            timeout=15
+            timeout=20
         ) as response:
 
-            response_body = response.read().decode(
-                "utf-8"
+            response_body = (
+                response
+                .read()
+                .decode("utf-8")
             )
 
             status_code = response.status
 
 
+        print(
+            f"Resend HTTP status: {status_code}"
+        )
+
+        print(
+            f"Resend response: {response_body}"
+        )
+
+
         # ----------------------------------------------------
-        # Success
+        # Parse response
+        # ----------------------------------------------------
+
+        try:
+
+            resend_result = json.loads(
+                response_body
+            )
+
+        except json.JSONDecodeError:
+
+            resend_result = {}
+
+
+        # ----------------------------------------------------
+        # SUCCESS
         # ----------------------------------------------------
 
         if 200 <= status_code < 300:
 
-            print(
-                "Email sent successfully using Resend."
+            email_id = (
+                resend_result.get("id")
             )
 
-            return True
+
+            print(
+                "RESEND ACCEPTED EMAIL"
+            )
+
+            print(
+                f"Resend Email ID: {email_id}"
+            )
+
+
+            return {
+                "success": True,
+                "email_id": email_id,
+                "error": None
+            }
+
+
+        # ----------------------------------------------------
+        # RESEND API FAILURE
+        # ----------------------------------------------------
+
+        error_message = (
+            resend_result.get("message")
+            or resend_result.get("error")
+            or response_body
+            or f"HTTP {status_code}"
+        )
 
 
         print(
-            f"Resend returned HTTP {status_code}"
+            "RESEND REJECTED EMAIL"
         )
 
         print(
-            response_body
+            f"Error: {error_message}"
         )
 
-        return False
+
+        return {
+            "success": False,
+            "email_id": None,
+            "error": str(error_message)
+        }
 
 
-    # --------------------------------------------------------
-    # HTTP error
-    # --------------------------------------------------------
+    # ========================================================
+    # HTTP ERROR
+    # ========================================================
 
     except urllib.error.HTTPError as error:
 
-        print(
-            "Resend email sending failed."
-        )
-
-        print(
-            f"HTTPError: {error.code}"
-        )
-
         try:
 
-            error_body = error.read().decode(
-                "utf-8"
-            )
-
-            print(
-                error_body
+            error_body = (
+                error
+                .read()
+                .decode("utf-8")
             )
 
         except Exception:
-            pass
 
-        return False
+            error_body = ""
 
 
-    # --------------------------------------------------------
-    # Network / URL error
-    # --------------------------------------------------------
+        print(
+            "RESEND HTTP ERROR"
+        )
+
+        print(
+            f"HTTP status: {error.code}"
+        )
+
+        print(
+            f"Response: {error_body}"
+        )
+
+
+        try:
+
+            error_json = json.loads(
+                error_body
+            )
+
+            error_message = (
+                error_json.get("message")
+                or error_json.get("error")
+                or error_body
+            )
+
+        except Exception:
+
+            error_message = error_body
+
+
+        return {
+            "success": False,
+            "email_id": None,
+            "error": str(error_message)
+        }
+
+
+    # ========================================================
+    # NETWORK ERROR
+    # ========================================================
 
     except urllib.error.URLError as error:
 
         print(
-            "Resend network error:"
+            "RESEND NETWORK ERROR"
         )
 
         print(
-            f"URLError: {error.reason}"
+            f"Reason: {error.reason}"
         )
 
-        return False
+
+        return {
+            "success": False,
+            "email_id": None,
+            "error": str(error.reason)
+        }
 
 
-    # --------------------------------------------------------
-    # Other error
-    # --------------------------------------------------------
+    # ========================================================
+    # UNKNOWN ERROR
+    # ========================================================
 
     except Exception as error:
 
         print(
-            "Resend email sending failed:"
+            "RESEND UNEXPECTED ERROR"
         )
 
         print(
             f"{type(error).__name__}: {error}"
         )
 
-        return False
+
+        return {
+            "success": False,
+            "email_id": None,
+            "error": str(error)
+        }
 
 
 # ============================================================
@@ -514,7 +618,7 @@ def contact():
     try:
 
         # ----------------------------------------------------
-        # Read request data
+        # Read request
         # ----------------------------------------------------
 
         data = request.get_json(
@@ -611,14 +715,19 @@ def contact():
 
 
         # ----------------------------------------------------
-        # Save message to SQLite FIRST
+        # Save message
         # ----------------------------------------------------
 
-        created_at = datetime.utcnow().isoformat()
+        created_at = (
+            datetime.utcnow()
+            .isoformat()
+        )
+
 
         connection = get_db()
 
         cursor = connection.cursor()
+
 
         cursor.execute(
             """
@@ -640,6 +749,7 @@ def contact():
             )
         )
 
+
         connection.commit()
 
         message_id = cursor.lastrowid
@@ -648,7 +758,7 @@ def contact():
 
 
         # ----------------------------------------------------
-        # Prepare notification email
+        # Prepare admin email
         # ----------------------------------------------------
 
         email_subject = (
@@ -678,29 +788,81 @@ Received:
 
 
         # ----------------------------------------------------
-        # Send notification
+        # Send admin email
         # ----------------------------------------------------
 
-        email_sent = send_email(
+        email_result = send_email(
             ADMIN_EMAIL,
             email_subject,
             email_body
         )
 
 
+        email_sent = (
+            email_result["success"]
+        )
+
+
+        email_id = (
+            email_result.get(
+                "email_id"
+            )
+        )
+
+
+        email_error = (
+            email_result.get(
+                "error"
+            )
+        )
+
+
         # ----------------------------------------------------
-        # Return success after DB save
+        # EMAIL SUCCESS
         # ----------------------------------------------------
+
+        if email_sent:
+
+            return jsonify(
+                {
+                    "success": True,
+                    "message": (
+                        "Your message has been "
+                        "sent successfully."
+                    ),
+                    "message_id": message_id,
+                    "email_sent": True,
+                    "email_id": email_id
+                }
+            ), 200
+
+
+        # ----------------------------------------------------
+        # MESSAGE SAVED BUT EMAIL FAILED
+        # ----------------------------------------------------
+
+        print(
+            "WARNING: Contact message saved "
+            "but email failed."
+        )
+
+        print(
+            f"Email error: {email_error}"
+        )
+
 
         return jsonify(
             {
                 "success": True,
                 "message": (
-                    "Your message has been "
-                    "sent successfully."
+                    "Your message was received, "
+                    "but the email notification "
+                    "could not be sent."
                 ),
                 "message_id": message_id,
-                "email_sent": email_sent
+                "email_sent": False,
+                "email_id": None,
+                "email_error": email_error
             }
         ), 200
 
@@ -714,6 +876,7 @@ Received:
         print(
             f"{type(error).__name__}: {error}"
         )
+
 
         return jsonify(
             {
@@ -770,10 +933,6 @@ def admin_login():
         )
 
 
-        # ----------------------------------------------------
-        # Validate username
-        # ----------------------------------------------------
-
         if username != ADMIN_USERNAME:
 
             return jsonify(
@@ -785,10 +944,6 @@ def admin_login():
                 }
             ), 401
 
-
-        # ----------------------------------------------------
-        # Validate password hash
-        # ----------------------------------------------------
 
         if not ADMIN_PASSWORD_HASH:
 
@@ -806,10 +961,6 @@ def admin_login():
                 }
             ), 500
 
-
-        # ----------------------------------------------------
-        # Validate password
-        # ----------------------------------------------------
 
         if not check_password_hash(
             ADMIN_PASSWORD_HASH,
@@ -847,7 +998,7 @@ def admin_login():
 
 
         # ----------------------------------------------------
-        # Store OTP in session
+        # Store OTP
         # ----------------------------------------------------
 
         session.permanent = True
@@ -883,7 +1034,7 @@ please ignore this email.
 """
 
 
-        email_sent = send_email(
+        otp_result = send_email(
             ADMIN_EMAIL,
             otp_subject,
             otp_body
@@ -891,10 +1042,10 @@ please ignore this email.
 
 
         # ----------------------------------------------------
-        # Email failed
+        # OTP email failure
         # ----------------------------------------------------
 
-        if not email_sent:
+        if not otp_result["success"]:
 
             session.pop(
                 "admin_otp",
@@ -911,13 +1062,23 @@ please ignore this email.
                 None
             )
 
+
+            print(
+                "OTP email failed:"
+            )
+
+            print(
+                otp_result.get(
+                    "error"
+                )
+            )
+
+
             return jsonify(
                 {
                     "success": False,
                     "message": (
-                        "Unable to send OTP email. "
-                        "Please check the Resend "
-                        "email configuration."
+                        "Unable to send OTP email."
                     )
                 }
             ), 500
@@ -929,7 +1090,12 @@ please ignore this email.
                 "message": (
                     "OTP sent successfully."
                 ),
-                "otp_required": True
+                "otp_required": True,
+                "email_id": (
+                    otp_result.get(
+                        "email_id"
+                    )
+                )
             }
         ), 200
 
@@ -943,6 +1109,7 @@ please ignore this email.
         print(
             f"{type(error).__name__}: {error}"
         )
+
 
         return jsonify(
             {
@@ -1000,10 +1167,6 @@ def verify_otp():
         )
 
 
-        # ----------------------------------------------------
-        # Check OTP existence
-        # ----------------------------------------------------
-
         if not stored_otp or not expiry_string:
 
             return jsonify(
@@ -1015,10 +1178,6 @@ def verify_otp():
                 }
             ), 401
 
-
-        # ----------------------------------------------------
-        # Check expiry
-        # ----------------------------------------------------
 
         try:
 
@@ -1067,10 +1226,6 @@ def verify_otp():
             ), 401
 
 
-        # ----------------------------------------------------
-        # Check OTP
-        # ----------------------------------------------------
-
         if entered_otp != stored_otp:
 
             return jsonify(
@@ -1083,16 +1238,10 @@ def verify_otp():
             ), 401
 
 
-        # ----------------------------------------------------
-        # Authenticate admin
-        # ----------------------------------------------------
-
         session["admin_authenticated"] = True
 
         session["admin_otp_verified"] = True
 
-
-        # Remove OTP after successful verification
 
         session.pop(
             "admin_otp",
@@ -1125,6 +1274,7 @@ def verify_otp():
         print(
             f"{type(error).__name__}: {error}"
         )
+
 
         return jsonify(
             {
@@ -1174,10 +1324,6 @@ def get_messages():
 
     try:
 
-        # ----------------------------------------------------
-        # Admin authentication
-        # ----------------------------------------------------
-
         if not session.get(
             "admin_authenticated",
             False
@@ -1193,13 +1339,10 @@ def get_messages():
             ), 401
 
 
-        # ----------------------------------------------------
-        # Fetch messages
-        # ----------------------------------------------------
-
         connection = get_db()
 
         cursor = connection.cursor()
+
 
         cursor.execute(
             """
@@ -1215,12 +1358,14 @@ def get_messages():
             """
         )
 
+
         rows = cursor.fetchall()
 
         connection.close()
 
 
         messages = []
+
 
         for row in rows:
 
@@ -1257,6 +1402,7 @@ def get_messages():
             f"{type(error).__name__}: {error}"
         )
 
+
         return jsonify(
             {
                 "success": False,
@@ -1281,10 +1427,6 @@ def mark_message_read(
 
     try:
 
-        # ----------------------------------------------------
-        # Admin authentication
-        # ----------------------------------------------------
-
         if not session.get(
             "admin_authenticated",
             False
@@ -1300,13 +1442,10 @@ def mark_message_read(
             ), 401
 
 
-        # ----------------------------------------------------
-        # Update message
-        # ----------------------------------------------------
-
         connection = get_db()
 
         cursor = connection.cursor()
+
 
         cursor.execute(
             """
@@ -1318,6 +1457,7 @@ def mark_message_read(
                 message_id,
             )
         )
+
 
         connection.commit()
 
@@ -1357,6 +1497,7 @@ def mark_message_read(
         print(
             f"{type(error).__name__}: {error}"
         )
+
 
         return jsonify(
             {
