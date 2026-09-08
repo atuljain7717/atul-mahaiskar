@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // FLASK API
     // ========================================================
 
-    const API_URL ="https://atul-mahaiskar-backend.onrender.com/api/contact";
+    const API_URL =
+        "https://atul-mahaiskar-backend.onrender.com/api/contact";
 
 
     // ========================================================
@@ -28,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showNotification(message, type = "success") {
 
-        // Remove existing notification
         const existing =
             document.querySelector(".contact-notification");
 
@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        // Create notification
         const notification =
             document.createElement("div");
 
@@ -45,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `contact-notification ${type}`;
 
 
-        // Icon
         const icon =
             type === "success"
                 ? "fa-circle-check"
@@ -91,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        // Small delay for animation
         requestAnimationFrame(() => {
 
             notification.classList.add(
@@ -101,25 +98,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
 
-        // Close button
         const closeButton =
             notification.querySelector(
                 ".notification-close"
             );
 
-        closeButton.addEventListener(
-            "click",
-            () => {
+        if (closeButton) {
 
-                closeNotification(
-                    notification
-                );
+            closeButton.addEventListener(
+                "click",
+                () => {
 
-            }
-        );
+                    closeNotification(
+                        notification
+                    );
+
+                }
+            );
+
+        }
 
 
-        // Auto close
         setTimeout(() => {
 
             closeNotification(
@@ -143,9 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+
         notification.classList.remove(
             "show"
         );
+
 
         setTimeout(() => {
 
@@ -320,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 // --------------------------------------------
-                // RESPONSE
+                // READ RESPONSE
                 // --------------------------------------------
 
                 const result =
@@ -333,13 +334,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                // --------------------------------------------
-                // SUCCESS
-                // --------------------------------------------
+                // =================================================
+                // IMPORTANT EMAIL CHECK
+                // =================================================
+                //
+                // Backend returns:
+                //
+                // success: true
+                // email_sent: true
+                //
+                // only when both the message and email are
+                // successfully processed.
+                //
+                // =================================================
 
                 if (
                     response.ok &&
-                    result.success
+                    result.success &&
+                    result.email_sent === true
                 ) {
 
                     form.reset();
@@ -358,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                     showNotification(
-                        "Thank you! Your message has been received successfully. I'll get back to you soon.",
+                        "Thank you! Your message has been received and the email notification was sent successfully.",
                         "success"
                     );
 
@@ -378,6 +390,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
+                // =================================================
+                // MESSAGE SAVED BUT EMAIL FAILED
+                // =================================================
+
+                if (
+                    response.ok &&
+                    result.success &&
+                    result.email_sent === false
+                ) {
+
+                    console.warn(
+                        "Message was saved, but email notification failed."
+                    );
+
+
+                    showNotification(
+                        "Your message was received, but the email notification could not be sent. Please try again later.",
+                        "error"
+                    );
+
+
+                    button.innerHTML =
+                        originalButtonHTML;
+
+                    button.disabled = false;
+
+                    return;
+
+                }
+
+
                 // --------------------------------------------
                 // API ERROR
                 // --------------------------------------------
@@ -386,7 +429,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     result.message ||
                     "Unable to send the message."
                 );
-
 
             } catch (error) {
 
@@ -397,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 showNotification(
-                    "Unable to send the message. Please try again.",
+                    "Unable to send the message. Please check your connection and try again.",
                     "error"
                 );
 
@@ -413,5 +455,3 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 });
-
-
