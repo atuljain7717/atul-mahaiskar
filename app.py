@@ -1,4 +1,3 @@
-
 # ============================================================
 # ATUL MAHAISKAR PORTFOLIO
 # BACKEND - APP.PY

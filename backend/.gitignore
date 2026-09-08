@@ -1,6 +1,39 @@
-﻿.env
-database/*.db
+# Python virtual environments
+.venv/
+.venv-1/
+venv/
+env/
+
+# Python cache
 __pycache__/
 *.pyc
-.venv/
-venv/
+*.pyo
+*.pyd
+
+# Environment variables / secrets
+.env
+.env.*
+**/.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

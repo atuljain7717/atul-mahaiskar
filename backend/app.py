@@ -1,11 +1,9 @@
 import os
 import random
 import sqlite3
-import smtplib
-import ssl
 from datetime import datetime, timedelta
-from email.message import EmailMessage
 
+import resend
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
@@ -108,32 +106,12 @@ init_database()
 
 
 # ============================================================
-# EMAIL CONFIGURATION
+# RESEND EMAIL CONFIGURATION
 # ============================================================
 
-SMTP_HOST = os.getenv(
-    "SMTP_HOST",
-    "smtp.resend.com"
-)
-
-SMTP_PORT = int(
-    os.getenv(
-        "SMTP_PORT",
-        "587"
-    )
-)
-
-SMTP_USERNAME = os.getenv(
-    "SMTP_USERNAME",
-    "resend"
-)
-
-SMTP_PASSWORD = os.getenv(
-    "SMTP_PASSWORD",
-    os.getenv(
-        "RESEND_API_KEY",
-        ""
-    )
+RESEND_API_KEY = os.getenv(
+    "RESEND_API_KEY",
+    ""
 )
 
 RESEND_FROM_EMAIL = os.getenv(
@@ -154,22 +132,27 @@ OTP_EXPIRY_MINUTES = int(
 )
 
 
+# Configure Resend SDK
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
+
+
 # ============================================================
 # EMAIL SERVICE
 # ============================================================
 
 def send_email(to_email, subject, body):
 
-    if not SMTP_PASSWORD:
+    if not RESEND_API_KEY:
         print("=" * 60)
         print("EMAIL ERROR")
-        print("SMTP_PASSWORD / RESEND_API_KEY is missing.")
+        print("RESEND_API_KEY is missing.")
         print("=" * 60)
 
         return {
             "success": False,
             "email_id": None,
-            "error": "SMTP password is not configured."
+            "error": "Resend API key is not configured."
         }
 
     if not to_email:
@@ -185,144 +168,50 @@ def send_email(to_email, subject, body):
         }
 
     try:
+
         print("=" * 60)
-        print("RESEND SMTP EMAIL REQUEST")
-        print(f"SMTP Host: {SMTP_HOST}")
-        print(f"SMTP Port: {SMTP_PORT}")
-        print(f"SMTP Username: {SMTP_USERNAME}")
+        print("RESEND API EMAIL REQUEST")
         print(f"From: {RESEND_FROM_EMAIL}")
         print(f"To: {to_email}")
         print(f"Subject: {subject}")
 
-        email = EmailMessage()
-        email["From"] = RESEND_FROM_EMAIL
-        email["To"] = to_email
-        email["Subject"] = subject
-        email.set_content(body)
+        params = {
+            "from": RESEND_FROM_EMAIL,
+            "to": [to_email],
+            "subject": subject,
+            "text": body
+        }
 
-        context = ssl.create_default_context()
+        result = resend.Emails.send(params)
 
-        # Resend STARTTLS
-        if SMTP_PORT in (25, 587, 2587):
+        print("RESEND API EMAIL ACCEPTED")
 
-            print(
-                "Connecting to Resend using STARTTLS..."
-            )
+        # Resend normally returns an object containing an email ID.
+        email_id = None
 
-            with smtplib.SMTP(
-                SMTP_HOST,
-                SMTP_PORT,
-                timeout=20
-            ) as smtp:
-
-                smtp.ehlo()
-
-                smtp.starttls(
-                    context=context
-                )
-
-                smtp.ehlo()
-
-                smtp.login(
-                    SMTP_USERNAME,
-                    SMTP_PASSWORD
-                )
-
-                smtp.send_message(email)
-
-        # Resend SSL
-        elif SMTP_PORT in (465, 2465):
-
-            print(
-                "Connecting to Resend using SMTP SSL..."
-            )
-
-            with smtplib.SMTP_SSL(
-                SMTP_HOST,
-                SMTP_PORT,
-                context=context,
-                timeout=20
-            ) as smtp:
-
-                smtp.login(
-                    SMTP_USERNAME,
-                    SMTP_PASSWORD
-                )
-
-                smtp.send_message(email)
+        if isinstance(result, dict):
+            email_id = result.get("id")
 
         else:
-            raise ValueError(
-                f"Unsupported SMTP port: {SMTP_PORT}"
+            email_id = getattr(
+                result,
+                "id",
+                None
             )
 
-        print("RESEND SMTP ACCEPTED EMAIL")
-        print("Email sent successfully.")
+        print(f"Email ID: {email_id}")
         print("=" * 60)
 
         return {
             "success": True,
-            "email_id": None,
+            "email_id": email_id,
             "error": None
-        }
-
-    except smtplib.SMTPAuthenticationError as error:
-
-        print("=" * 60)
-        print("SMTP AUTHENTICATION FAILED")
-        print(f"Error: {error}")
-        print("=" * 60)
-
-        return {
-            "success": False,
-            "email_id": None,
-            "error": "SMTP authentication failed."
-        }
-
-    except smtplib.SMTPConnectError as error:
-
-        print("=" * 60)
-        print("SMTP CONNECTION FAILED")
-        print(f"Error: {error}")
-        print("=" * 60)
-
-        return {
-            "success": False,
-            "email_id": None,
-            "error": "Unable to connect to the email server."
-        }
-
-    except (TimeoutError, ConnectionError) as error:
-
-        print("=" * 60)
-        print("SMTP CONNECTION TIMEOUT")
-        print(f"Error: {error}")
-        print("=" * 60)
-
-        return {
-            "success": False,
-            "email_id": None,
-            "error": "Email server connection timed out."
-        }
-
-    except smtplib.SMTPException as error:
-
-        print("=" * 60)
-        print("SMTP ERROR")
-        print(f"Error type: {type(error).__name__}")
-        print(f"Error: {error}")
-        print("=" * 60)
-
-        return {
-            "success": False,
-            "email_id": None,
-            "error": str(error)
         }
 
     except Exception as error:
 
         print("=" * 60)
-        print("EMAIL SEND FAILED")
+        print("RESEND API EMAIL FAILED")
         print(f"Error type: {type(error).__name__}")
         print(f"Error: {error}")
         print("=" * 60)
@@ -345,7 +234,7 @@ def home():
         "success": True,
         "message": "Atul Mahaiskar Portfolio Backend is running.",
         "server": "Flask",
-        "email_provider": "Resend SMTP"
+        "email_provider": "Resend API"
     })
 
 
@@ -361,11 +250,8 @@ def health():
         "status": "healthy",
         "server": "Flask",
         "database": "SQLite",
-        "email": bool(SMTP_PASSWORD),
-        "email_provider": "Resend SMTP",
-        "smtp_host": SMTP_HOST,
-        "smtp_port": SMTP_PORT,
-        "smtp_username": SMTP_USERNAME,
+        "email": bool(RESEND_API_KEY),
+        "email_provider": "Resend API",
         "from_email": RESEND_FROM_EMAIL,
         "admin_email_configured": bool(ADMIN_EMAIL),
         "otp": bool(ADMIN_EMAIL)
@@ -380,6 +266,7 @@ def health():
 def contact():
 
     try:
+
         data = request.get_json(silent=True) or {}
 
         name = str(
@@ -394,7 +281,10 @@ def contact():
             data.get("message", "")
         ).strip()
 
-        # Validation
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
         if not name:
             return jsonify({
                 "success": False,
@@ -440,7 +330,12 @@ def contact():
                 "email_sent": False
             }), 400
 
-        # Save message
+        # ----------------------------------------------------
+        # SAVE MESSAGE
+        # ----------------------------------------------------
+
+        received_at = datetime.utcnow().isoformat()
+
         connection = get_db()
 
         cursor = connection.execute(
@@ -459,7 +354,7 @@ def contact():
                 name,
                 email,
                 message,
-                datetime.utcnow().isoformat(),
+                received_at,
                 0
             )
         )
@@ -469,7 +364,10 @@ def contact():
         connection.commit()
         connection.close()
 
-        # Create email
+        # ----------------------------------------------------
+        # EMAIL
+        # ----------------------------------------------------
+
         subject = (
             f"New Portfolio Contact Message from {name}"
         )
@@ -492,10 +390,9 @@ Message ID:
 {message_id}
 
 Received:
-{datetime.utcnow().isoformat()}
+{received_at}
 """
 
-        # Send email
         email_result = send_email(
             ADMIN_EMAIL,
             subject,
@@ -509,14 +406,23 @@ Received:
             )
         )
 
+        # ----------------------------------------------------
+        # SUCCESS
+        # ----------------------------------------------------
+
         if email_sent:
 
             return jsonify({
                 "success": True,
                 "message": "Your message has been sent successfully.",
                 "message_id": message_id,
-                "email_sent": True
+                "email_sent": True,
+                "email_id": email_result.get("email_id")
             }), 200
+
+        # ----------------------------------------------------
+        # DATABASE SUCCESS / EMAIL FAILURE
+        # ----------------------------------------------------
 
         print(
             f"Contact message {message_id} saved, "
@@ -572,6 +478,7 @@ ADMIN_PASSWORD_HASH = os.getenv(
 def admin_login():
 
     try:
+
         data = request.get_json(silent=True) or {}
 
         username = str(
@@ -609,7 +516,10 @@ def admin_login():
                 "message": "Invalid credentials."
             }), 401
 
-        # Generate OTP
+        # ----------------------------------------------------
+        # GENERATE OTP
+        # ----------------------------------------------------
+
         otp = str(
             random.randint(
                 100000,
@@ -629,7 +539,10 @@ def admin_login():
         session["admin_username"] = username
         session.permanent = True
 
-        # OTP email
+        # ----------------------------------------------------
+        # OTP EMAIL
+        # ----------------------------------------------------
+
         otp_subject = "Portfolio Admin Login OTP"
 
         otp_body = f"""
@@ -691,6 +604,7 @@ you can safely ignore this email.
 def verify_otp():
 
     try:
+
         data = request.get_json(silent=True) or {}
 
         entered_otp = str(
