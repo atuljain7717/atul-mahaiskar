@@ -1,7 +1,9 @@
 import os
 import random
 import sqlite3
+import time
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 import resend
 from dotenv import load_dotenv
@@ -18,7 +20,7 @@ load_dotenv()
 
 
 # ============================================================
-# FLASK APP
+# FLASK APPLICATION
 # ============================================================
 
 app = Flask(__name__)
@@ -43,7 +45,7 @@ app.config.update(
 FRONTEND_ORIGIN = os.getenv(
     "FRONTEND_ORIGIN",
     "https://atul-mahaiskar.vercel.app"
-)
+).strip()
 
 CORS(
     app,
@@ -56,9 +58,7 @@ CORS(
 # DATABASE
 # ============================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE_DIR = os.path.join(
     BASE_DIR,
@@ -77,12 +77,17 @@ os.makedirs(
 
 
 def get_db():
-    connection = sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(
+        DATABASE_PATH
+    )
+
     connection.row_factory = sqlite3.Row
+
     return connection
 
 
 def init_database():
+
     connection = get_db()
 
     connection.execute(
@@ -93,12 +98,38 @@ def init_database():
             email TEXT NOT NULL,
             message TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            is_read INTEGER DEFAULT 0
+            is_read INTEGER DEFAULT 0,
+            ip_address TEXT,
+            user_agent TEXT
         )
         """
     )
 
     connection.commit()
+
+    # --------------------------------------------------------
+    # Backward compatibility for existing database
+    # --------------------------------------------------------
+
+    existing_columns = {
+        row["name"]
+        for row in connection.execute(
+            "PRAGMA table_info(messages)"
+        ).fetchall()
+    }
+
+    if "ip_address" not in existing_columns:
+        connection.execute(
+            "ALTER TABLE messages ADD COLUMN ip_address TEXT"
+        )
+
+    if "user_agent" not in existing_columns:
+        connection.execute(
+            "ALTER TABLE messages ADD COLUMN user_agent TEXT"
+        )
+
+    connection.commit()
+
     connection.close()
 
 
@@ -112,7 +143,7 @@ init_database()
 RESEND_API_KEY = os.getenv(
     "RESEND_API_KEY",
     ""
-)
+).strip()
 
 RESEND_FROM_EMAIL = os.getenv(
     "RESEND_FROM_EMAIL",
@@ -131,30 +162,97 @@ OTP_EXPIRY_MINUTES = int(
     )
 )
 
-
 if RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
 
 
 # ============================================================
-# EMAIL BRANDING
+# PORTFOLIO BRANDING
 # ============================================================
 
 PORTFOLIO_NAME = "Atul Mahaiskar"
-PORTFOLIO_TITLE = "Software Developer • AI/ML • Full Stack"
-PORTFOLIO_URL = "https://atul-mahaiskar.vercel.app"
+
+PORTFOLIO_TITLE = (
+    "Software Developer • AI/ML • Full Stack"
+)
+
+PORTFOLIO_URL = (
+    "https://atul-mahaiskar.vercel.app"
+)
 
 EMAIL_LOGO_TEXT = "AM"
 
 
 # ============================================================
-# EMAIL HELPERS
+# ADMIN AUTHENTICATION
+# ============================================================
+
+ADMIN_USERNAME = os.getenv(
+    "ADMIN_USERNAME",
+    "admin"
+).strip()
+
+ADMIN_PASSWORD_HASH = os.getenv(
+    "ADMIN_PASSWORD_HASH",
+    ""
+).strip()
+
+
+# ============================================================
+# SIMPLE RATE LIMITING
+# ============================================================
+
+RATE_LIMIT_WINDOW_SECONDS = int(
+    os.getenv(
+        "CONTACT_RATE_LIMIT_SECONDS",
+        "60"
+    )
+)
+
+RATE_LIMIT_MAX_REQUESTS = int(
+    os.getenv(
+        "CONTACT_RATE_LIMIT_MAX_REQUESTS",
+        "3"
+    )
+)
+
+contact_rate_limits = {}
+
+
+def is_rate_limited(ip_address):
+
+    now = time.time()
+
+    requests_for_ip = contact_rate_limits.get(
+        ip_address,
+        []
+    )
+
+    requests_for_ip = [
+        timestamp
+        for timestamp in requests_for_ip
+        if now - timestamp < RATE_LIMIT_WINDOW_SECONDS
+    ]
+
+    if len(requests_for_ip) >= RATE_LIMIT_MAX_REQUESTS:
+
+        contact_rate_limits[ip_address] = requests_for_ip
+
+        return True
+
+    requests_for_ip.append(now)
+
+    contact_rate_limits[ip_address] = requests_for_ip
+
+    return False
+
+
+# ============================================================
+# HTML ESCAPING
 # ============================================================
 
 def escape_html(value):
-    """
-    Basic HTML escaping for user-provided content.
-    """
+
     value = str(value)
 
     return (
@@ -167,20 +265,35 @@ def escape_html(value):
     )
 
 
+# ============================================================
+# EMAIL LAYOUT
+# ============================================================
+
 def create_email_layout(
     heading,
     subtitle,
     content_html,
-    footer_text="This email was sent from the Atul Mahaiskar portfolio."
+    footer_text=(
+        "This email was sent from the "
+        "Atul Mahaiskar portfolio."
+    )
 ):
-    """
-    Shared professional email layout.
-    """
+
+    safe_heading = escape_html(
+        heading
+    )
+
+    safe_subtitle = escape_html(
+        subtitle
+    )
 
     return f"""
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 
 <meta
@@ -188,298 +301,717 @@ def create_email_layout(
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>{escape_html(heading)}</title>
+<meta
+    name="color-scheme"
+    content="light"
+>
+
+<title>
+    {safe_heading}
+</title>
 
 <style>
 
-    body {{
-        margin: 0;
-        padding: 0;
-        background: #f4f7fb;
-        font-family:
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            Roboto,
-            Helvetica,
-            Arial,
-            sans-serif;
-        color: #172033;
+* {{
+    box-sizing: border-box;
+}}
+
+body {{
+    margin: 0;
+    padding: 0;
+
+    background: #eef2f7;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    color: #172033;
+}}
+
+table {{
+    border-collapse: collapse;
+}}
+
+a {{
+    text-decoration: none;
+}}
+
+.email-wrapper {{
+    width: 100%;
+
+    padding:
+        42px 15px;
+}}
+
+.email-container {{
+    width: 100%;
+    max-width: 650px;
+
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    border-radius: 22px;
+
+    overflow: hidden;
+
+    border: 1px solid #e5e7eb;
+
+    box-shadow:
+        0 20px 60px
+        rgba(15, 23, 42, 0.10);
+}}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {{
+    position: relative;
+
+    padding:
+        34px 36px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #05070c 0%,
+            #111827 50%,
+            #1e293b 100%
+        );
+
+    color: #ffffff;
+}}
+
+.header-glow {{
+    position: absolute;
+
+    width: 190px;
+    height: 190px;
+
+    right: -80px;
+    top: -95px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255,255,255,0.055);
+}}
+
+.header-line {{
+    position: absolute;
+
+    left: 36px;
+    right: 36px;
+    bottom: 0;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.20),
+            transparent
+        );
+}}
+
+.brand {{
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    z-index: 2;
+}}
+
+.logo {{
+    width: 56px;
+    height: 56px;
+
+    min-width: 56px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #e5e7eb
+        );
+
+    color: #0f172a;
+
+    font-size: 18px;
+
+    font-weight: 900;
+
+    letter-spacing: -2px;
+
+    box-shadow:
+        0 9px 25px
+        rgba(0,0,0,0.25);
+}}
+
+.brand-name {{
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 19px;
+
+    font-weight: 800;
+
+    letter-spacing: -0.3px;
+}}
+
+.brand-title {{
+    margin-top: 5px;
+
+    color: #aeb8c8;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+
+    letter-spacing: 0.3px;
+}}
+
+.brand-status {{
+    display: inline-block;
+
+    margin-top: 8px;
+
+    padding:
+        4px 9px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+    color: #cbd5e1;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+
+    text-transform: uppercase;
+}}
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.body {{
+    padding:
+        39px 36px 36px;
+}}
+
+.eyebrow {{
+    margin-bottom: 9px;
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+}}
+
+.heading {{
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 28px;
+
+    line-height: 1.2;
+
+    font-weight: 850;
+
+    letter-spacing: -0.8px;
+}}
+
+.subtitle {{
+    margin:
+        11px 0 29px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}}
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
+.message-status {{
+    display: inline-block;
+
+    margin-bottom: 18px;
+
+    padding:
+        6px 10px;
+
+    border-radius: 999px;
+
+    background: #f1f5f9;
+
+    border:
+        1px solid #e2e8f0;
+
+    color: #475569;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.9px;
+
+    text-transform: uppercase;
+}}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.card {{
+    margin-bottom: 16px;
+
+    padding: 20px;
+
+    background: #f8fafc;
+
+    border:
+        1px solid #e7ebf0;
+
+    border-radius: 15px;
+}}
+
+.label {{
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}}
+
+.value {{
+    color: #172033;
+
+    font-size: 15px;
+
+    line-height: 1.65;
+
+    word-break: break-word;
+}}
+
+.email-link {{
+    color: #334155;
+
+    font-weight: 650;
+
+    border-bottom:
+        1px solid #cbd5e1;
+}}
+
+.message-box {{
+    padding: 18px;
+
+    background: #ffffff;
+
+    border:
+        1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    color: #334155;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+}}
+
+
+/* =========================================================
+   META
+========================================================= */
+
+.meta {{
+    width: 100%;
+
+    margin-top: 20px;
+}}
+
+.meta-item {{
+    width: 50%;
+
+    vertical-align: top;
+
+    padding-right: 10px;
+}}
+
+.meta-item:last-child {{
+    padding-right: 0;
+
+    padding-left: 10px;
+}}
+
+.meta-label {{
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #94a3b8;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.9px;
+
+    text-transform: uppercase;
+}}
+
+.meta-value {{
+    color: #475569;
+
+    font-size: 11px;
+
+    font-weight: 650;
+}}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.button-wrapper {{
+    margin-top: 27px;
+}}
+
+.button {{
+    display: inline-block;
+
+    padding:
+        13px 21px;
+
+    border-radius: 11px;
+
+    background: #111827;
+
+    color: #ffffff !important;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+    letter-spacing: 0.1px;
+
+    box-shadow:
+        0 8px 20px
+        rgba(15,23,42,0.16);
+}}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.divider {{
+    height: 1px;
+
+    margin:
+        30px 0;
+
+    background: #e5e7eb;
+}}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {{
+    padding:
+        25px 36px;
+
+    background: #f8fafc;
+
+    border-top:
+        1px solid #e5e7eb;
+
+    text-align: center;
+}}
+
+.footer-brand {{
+    margin-bottom: 7px;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 750;
+}}
+
+.footer-text {{
+    margin: 0;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+    line-height: 1.7;
+}}
+
+.footer-link {{
+    display: inline-block;
+
+    margin-top: 10px;
+
+    color: #475569;
+
+    font-size: 11px;
+
+    font-weight: 750;
+}}
+
+.footer-mark {{
+    margin-top: 13px;
+
+    color: #cbd5e1;
+
+    font-size: 9px;
+
+    font-weight: 750;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+}}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media only screen and (max-width: 600px) {{
+
+    .email-wrapper {{
+        padding:
+            18px 8px;
     }}
 
-    .wrapper {{
-        width: 100%;
-        padding: 40px 16px;
-        box-sizing: border-box;
-    }}
-
-    .container {{
-        width: 100%;
-        max-width: 620px;
-        margin: 0 auto;
-        background: #ffffff;
-        border-radius: 18px;
-        overflow: hidden;
-        box-shadow:
-            0 12px 40px rgba(15, 23, 42, 0.08);
+    .email-container {{
+        border-radius: 17px;
     }}
 
     .header {{
-        padding: 30px 34px;
-        background:
-            linear-gradient(
-                135deg,
-                #111827 0%,
-                #1f2937 100%
-            );
-        color: #ffffff;
+        padding:
+            27px 22px;
     }}
 
-    .brand {{
-        display: flex;
-        align-items: center;
+    .header-line {{
+        left: 22px;
+        right: 22px;
     }}
 
     .logo {{
-        width: 46px;
-        height: 46px;
-        border-radius: 12px;
-        background: #ffffff;
-        color: #111827;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 17px;
-        margin-right: 13px;
+        width: 48px;
+        height: 48px;
+
+        min-width: 48px;
     }}
 
     .brand-name {{
-        font-size: 17px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
+        font-size: 16px;
     }}
 
     .brand-title {{
-        margin-top: 3px;
-        color: #cbd5e1;
-        font-size: 12px;
+        font-size: 10px;
     }}
 
     .body {{
-        padding: 34px;
+        padding:
+            29px 20px;
     }}
 
     .heading {{
-        margin: 0;
-        font-size: 25px;
-        line-height: 1.25;
-        color: #111827;
+        font-size: 23px;
     }}
 
     .subtitle {{
-        margin: 10px 0 26px;
-        color: #64748b;
-        font-size: 14px;
-        line-height: 1.6;
-    }}
-
-    .card {{
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 18px;
-    }}
-
-    .label {{
-        display: block;
-        margin-bottom: 6px;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.7px;
-        text-transform: uppercase;
-    }}
-
-    .value {{
-        color: #111827;
-        font-size: 15px;
-        line-height: 1.6;
-        word-break: break-word;
-    }}
-
-    .email-link {{
-        color: #2563eb;
-        text-decoration: none;
-    }}
-
-    .message-box {{
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 18px;
-        color: #334155;
-        font-size: 14px;
-        line-height: 1.75;
-        white-space: pre-wrap;
-        word-break: break-word;
-    }}
-
-    .meta {{
-        display: table;
-        width: 100%;
-        margin-top: 20px;
+        font-size: 13px;
     }}
 
     .meta-item {{
-        display: table-cell;
-        width: 50%;
-        vertical-align: top;
-        padding-right: 10px;
+        display: block;
+
+        width: 100%;
+
+        padding:
+            0 0 15px 0;
     }}
 
-    .button {{
-        display: inline-block;
-        padding: 13px 20px;
-        background: #111827;
-        color: #ffffff !important;
-        text-decoration: none;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 700;
-        margin-top: 5px;
-    }}
-
-    .divider {{
-        height: 1px;
-        background: #e5e7eb;
-        margin: 28px 0;
+    .meta-item:last-child {{
+        padding-left: 0;
     }}
 
     .footer {{
-        padding: 22px 34px;
-        background: #f8fafc;
-        border-top: 1px solid #e5e7eb;
-        text-align: center;
+        padding:
+            22px 20px;
     }}
 
-    .footer-text {{
-        margin: 0;
-        color: #94a3b8;
-        font-size: 11px;
-        line-height: 1.6;
-    }}
-
-    .footer-link {{
-        color: #64748b;
-        text-decoration: none;
-        font-weight: 600;
-    }}
-
-    @media only screen and (max-width: 600px) {{
-
-        .wrapper {{
-            padding: 18px 10px;
-        }}
-
-        .header {{
-            padding: 24px;
-        }}
-
-        .body {{
-            padding: 26px 22px;
-        }}
-
-        .footer {{
-            padding: 20px 22px;
-        }}
-
-        .heading {{
-            font-size: 22px;
-        }}
-
-        .meta {{
-            display: block;
-        }}
-
-        .meta-item {{
-            display: block;
-            width: 100%;
-            padding-right: 0;
-            margin-bottom: 15px;
-        }}
-
-    }}
+}}
 
 </style>
+
 </head>
+
 
 <body>
 
-<div class="wrapper">
+<div class="email-wrapper">
 
-    <div class="container">
+<div class="email-container">
 
-        <div class="header">
 
-            <div class="brand">
+<!-- =======================================================
+     PREMIUM AM HEADER
+======================================================== -->
 
-                <div class="logo">
-                    {EMAIL_LOGO_TEXT}
-                </div>
+<div class="header">
 
-                <div>
+    <div class="header-glow"></div>
 
-                    <div class="brand-name">
-                        {PORTFOLIO_NAME}
-                    </div>
+    <div class="brand">
 
-                    <div class="brand-title">
-                        {PORTFOLIO_TITLE}
-                    </div>
+        <div class="logo">
+            {EMAIL_LOGO_TEXT}
+        </div>
 
-                </div>
+        <div>
 
+            <div class="brand-name">
+                {PORTFOLIO_NAME}
             </div>
 
-        </div>
+            <div class="brand-title">
+                {PORTFOLIO_TITLE}
+            </div>
 
-        <div class="body">
-
-            <h1 class="heading">
-                {heading}
-            </h1>
-
-            <p class="subtitle">
-                {subtitle}
-            </p>
-
-            {content_html}
-
-        </div>
-
-        <div class="footer">
-
-            <p class="footer-text">
-                {escape_html(footer_text)}
-                <br><br>
-
-                <a
-                    class="footer-link"
-                    href="{PORTFOLIO_URL}"
-                >
-                    Visit Portfolio
-                </a>
-            </p>
+            <div class="brand-status">
+                Portfolio Communication
+            </div>
 
         </div>
 
     </div>
 
+    <div class="header-line"></div>
+
+</div>
+
+
+<!-- =======================================================
+     MAIN CONTENT
+======================================================== -->
+
+<div class="body">
+
+    <div class="eyebrow">
+        ATUL MAHAISKAR • PORTFOLIO
+    </div>
+
+    <h1 class="heading">
+        {safe_heading}
+    </h1>
+
+    <p class="subtitle">
+        {safe_subtitle}
+    </p>
+
+    {content_html}
+
+</div>
+
+
+<!-- =======================================================
+     FOOTER
+======================================================== -->
+
+<div class="footer">
+
+    <div class="footer-brand">
+        Atul Mahaiskar
+    </div>
+
+    <p class="footer-text">
+        {escape_html(footer_text)}
+    </p>
+
+    <a
+        class="footer-link"
+        href="{PORTFOLIO_URL}"
+    >
+        Visit Portfolio ↗
+    </a>
+
+    <div class="footer-mark">
+        AM • SOFTWARE • AI • FULL STACK
+    </div>
+
+</div>
+
+
+</div>
+
 </div>
 
 </body>
+
 </html>
 """
 
@@ -499,236 +1031,306 @@ def create_admin_contact_email(
     safe_name = escape_html(name)
     safe_email = escape_html(email)
     safe_message = escape_html(message)
-    safe_received = escape_html(received_at)
+    safe_message_id = escape_html(message_id)
+    safe_received_at = escape_html(received_at)
 
-    content_html = f"""
+    reply_subject = quote(
+        "Re: Your message to Atul Mahaiskar"
+    )
 
-<div class="card">
+    content = f"""
 
-    <span class="label">
-        From
-    </span>
-
-    <div class="value">
-        <strong>{safe_name}</strong>
+    <div class="message-status">
+        NEW MESSAGE
     </div>
 
-</div>
+
+    <div class="card">
+
+        <span class="label">
+            From
+        </span>
+
+        <div class="value">
+            {safe_name}
+        </div>
+
+    </div>
 
 
-<div class="card">
+    <div class="card">
 
-    <span class="label">
-        Email Address
-    </span>
+        <span class="label">
+            Email Address
+        </span>
 
-    <div class="value">
+        <div class="value">
+
+            <a
+                class="email-link"
+                href="mailto:{safe_email}"
+            >
+                {safe_email}
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <span class="label">
+            Message
+        </span>
+
+        <div class="message-box">
+            {safe_message}
+        </div>
+
+    </div>
+
+
+    <table class="meta">
+
+        <tr>
+
+            <td class="meta-item">
+
+                <span class="meta-label">
+                    Message ID
+                </span>
+
+                <span class="meta-value">
+                    #{safe_message_id}
+                </span>
+
+            </td>
+
+
+            <td class="meta-item">
+
+                <span class="meta-label">
+                    Received
+                </span>
+
+                <span class="meta-value">
+                    {safe_received_at}
+                </span>
+
+            </td>
+
+        </tr>
+
+    </table>
+
+
+    <div class="divider"></div>
+
+
+    <div class="button-wrapper">
 
         <a
-            class="email-link"
-            href="mailto:{safe_email}"
+            class="button"
+            href="mailto:{safe_email}?subject={reply_subject}"
         >
-            {safe_email}
+            Reply to {safe_name}
         </a>
 
     </div>
 
-</div>
-
-
-<div class="card">
-
-    <span class="label">
-        Message
-    </span>
-
-    <div class="message-box">
-        {safe_message}
-    </div>
-
-</div>
-
-
-<div class="meta">
-
-    <div class="meta-item">
-
-        <span class="label">
-            Message ID
-        </span>
-
-        <div class="value">
-            #{message_id}
-        </div>
-
-    </div>
-
-    <div class="meta-item">
-
-        <span class="label">
-            Received
-        </span>
-
-        <div class="value">
-            {safe_received}
-        </div>
-
-    </div>
-
-</div>
-
-
-<div class="divider"></div>
-
-<a
-    class="button"
-    href="mailto:{safe_email}?subject=Re:%20Your%20message%20to%20Atul%20Mahaiskar"
->
-    Reply to {safe_name}
-</a>
-
-"""
+    """
 
     return create_email_layout(
         heading="New Contact Message",
         subtitle=(
-            f"You received a new message through your "
-            f"portfolio contact form."
+            "A new visitor message has been received "
+            "through your portfolio contact form."
         ),
-        content_html=content_html,
+        content_html=content,
         footer_text=(
-            "This is an automated notification from "
-            "your portfolio contact system."
+            "You received this notification because "
+            "your portfolio contact system received "
+            "a new message."
         )
     )
 
 
 # ============================================================
-# VISITOR THANK-YOU EMAIL
+# VISITOR CONFIRMATION EMAIL
 # ============================================================
 
 def create_visitor_confirmation_email(
     name,
-    message_id,
-    received_at
+    message_id
 ):
 
-    safe_name = escape_html(name)
-    safe_received = escape_html(received_at)
+    safe_name = escape_html(
+        name
+    )
 
-    content_html = f"""
+    safe_message_id = escape_html(
+        message_id
+    )
 
-<div class="card">
+    content = f"""
 
-    <span class="label">
-        Hello
-    </span>
-
-    <div class="value">
-
-        <strong>
-            {safe_name}
-        </strong>
-
+    <div class="message-status">
+        MESSAGE RECEIVED
     </div>
 
-</div>
 
+    <div class="card">
 
-<p
-    style="
-        margin: 0 0 18px;
-        color: #475569;
-        font-size: 14px;
-        line-height: 1.8;
-    "
->
-    Thank you for reaching out through my portfolio.
-    Your message has been successfully received.
-</p>
-
-
-<p
-    style="
-        margin: 0 0 18px;
-        color: #475569;
-        font-size: 14px;
-        line-height: 1.8;
-    "
->
-    I appreciate you taking the time to contact me.
-    I will review your message and get back to you
-    as soon as possible.
-</p>
-
-
-<div class="card">
-
-    <span class="label">
-        Message Reference
-    </span>
-
-    <div class="value">
-
-        <strong>
-            #{message_id}
-        </strong>
-
-        <br>
-
-        <span
-            style="
-                color: #64748b;
-                font-size: 13px;
-            "
-        >
-            Received {safe_received}
+        <span class="label">
+            Hello
         </span>
 
+        <div class="value">
+            Hi {safe_name},
+        </div>
+
     </div>
 
-</div>
+
+    <div class="card">
+
+        <div class="value">
+
+            Thank you for reaching out through
+            the Atul Mahaiskar portfolio.
+
+            <br><br>
+
+            Your message has been successfully
+            received. I appreciate you taking the
+            time to get in touch.
+
+        </div>
+
+    </div>
 
 
-<div class="divider"></div>
+    <div class="card">
+
+        <span class="label">
+            Message Reference
+        </span>
+
+        <div class="value">
+            #{safe_message_id}
+        </div>
+
+    </div>
 
 
-<p
-    style="
-        margin: 0;
-        color: #64748b;
-        font-size: 13px;
-        line-height: 1.7;
-    "
->
-    In the meantime, you can explore my portfolio
-    and learn more about my projects and technical work.
-</p>
+    <div class="button-wrapper">
 
+        <a
+            class="button"
+            href="{PORTFOLIO_URL}"
+        >
+            Visit My Portfolio ↗
+        </a>
 
-<a
-    class="button"
-    href="{PORTFOLIO_URL}"
->
-    Visit My Portfolio
-</a>
+    </div>
 
-"""
+    """
 
     return create_email_layout(
         heading="Thanks for reaching out",
         subtitle=(
-            "Your message has been received successfully."
+            "Your message is now safely in my inbox."
         ),
-        content_html=content_html,
+        content_html=content,
         footer_text=(
-            "Thank you for contacting Atul Mahaiskar."
+            "This is an automated confirmation. "
+            "Please do not reply to this email."
         )
     )
 
 
 # ============================================================
-# EMAIL SERVICE
+# OTP EMAIL
+# ============================================================
+
+def create_otp_email(
+    otp
+):
+
+    safe_otp = escape_html(
+        otp
+    )
+
+    content = f"""
+
+    <div class="message-status">
+        SECURITY VERIFICATION
+    </div>
+
+
+    <div class="card">
+
+        <span class="label">
+            Your verification code
+        </span>
+
+        <div
+            style="
+                font-size: 32px;
+                font-weight: 850;
+                letter-spacing: 8px;
+                color: #0f172a;
+                padding: 12px 0;
+            "
+        >
+            {safe_otp}
+        </div>
+
+        <div
+            style="
+                color: #64748b;
+                font-size: 12px;
+                line-height: 1.6;
+            "
+        >
+            This code expires in
+            {OTP_EXPIRY_MINUTES} minutes.
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="value">
+
+            If you did not attempt to sign in
+            to the portfolio administration panel,
+            you can safely ignore this email.
+
+        </div>
+
+    </div>
+
+    """
+
+    return create_email_layout(
+        heading="Admin Verification Code",
+        subtitle=(
+            "Use the verification code below "
+            "to complete your administrator login."
+        ),
+        content_html=content,
+        footer_text=(
+            "Security notification from the "
+            "Atul Mahaiskar portfolio."
+        )
+    )
+
+
+# ============================================================
+# RESEND EMAIL SERVICE
 # ============================================================
 
 def send_email(
@@ -741,37 +1343,43 @@ def send_email(
 
     if not RESEND_API_KEY:
 
-        print("=" * 60)
-        print("EMAIL ERROR")
-        print("RESEND_API_KEY is missing.")
-        print("=" * 60)
+        print(
+            "RESEND API KEY IS NOT CONFIGURED"
+        )
 
         return {
             "success": False,
-            "email_id": None,
-            "error": "Resend API key is not configured."
+            "error": "Email service is not configured."
         }
 
     if not to_email:
 
-        print("=" * 60)
-        print("EMAIL ERROR")
-        print("Recipient email is missing.")
-        print("=" * 60)
-
         return {
             "success": False,
-            "email_id": None,
             "error": "Recipient email is missing."
         }
 
     try:
 
-        print("=" * 60)
-        print("RESEND API EMAIL REQUEST")
-        print(f"From: {RESEND_FROM_EMAIL}")
-        print(f"To: {to_email}")
-        print(f"Subject: {subject}")
+        print(
+            "======================================"
+        )
+
+        print(
+            "RESEND API EMAIL REQUEST"
+        )
+
+        print(
+            f"From: {RESEND_FROM_EMAIL}"
+        )
+
+        print(
+            f"To: {to_email}"
+        )
+
+        print(
+            f"Subject: {subject}"
+        )
 
         params = {
             "from": RESEND_FROM_EMAIL,
@@ -781,20 +1389,24 @@ def send_email(
         }
 
         if html_body:
+
             params["html"] = html_body
 
         if reply_to:
+
             params["reply_to"] = reply_to
 
-        result = resend.Emails.send(params)
-
-        print("RESEND API EMAIL ACCEPTED")
+        result = resend.Emails.send(
+            params
+        )
 
         email_id = None
 
         if isinstance(result, dict):
 
-            email_id = result.get("id")
+            email_id = result.get(
+                "id"
+            )
 
         else:
 
@@ -804,26 +1416,47 @@ def send_email(
                 None
             )
 
-        print(f"Email ID: {email_id}")
-        print("=" * 60)
+        print(
+            "RESEND API EMAIL SENT"
+        )
+
+        print(
+            f"Email ID: {email_id}"
+        )
+
+        print(
+            "======================================"
+        )
 
         return {
             "success": True,
-            "email_id": email_id,
-            "error": None
+            "email_id": email_id
         }
 
     except Exception as error:
 
-        print("=" * 60)
-        print("RESEND API EMAIL FAILED")
-        print(f"Error type: {type(error).__name__}")
-        print(f"Error: {error}")
-        print("=" * 60)
+        print(
+            "======================================"
+        )
+
+        print(
+            "RESEND API EMAIL FAILED"
+        )
+
+        print(
+            f"Error type: {type(error).__name__}"
+        )
+
+        print(
+            f"Error: {error}"
+        )
+
+        print(
+            "======================================"
+        )
 
         return {
             "success": False,
-            "email_id": None,
             "error": str(error)
         }
 
@@ -833,13 +1466,19 @@ def send_email(
 # ============================================================
 
 @app.route("/", methods=["GET"])
-def home():
+def root():
 
     return jsonify({
         "success": True,
-        "message": "Atul Mahaiskar Portfolio Backend is running.",
+        "service": "Atul Mahaiskar Portfolio Backend",
         "server": "Flask",
-        "email_provider": "Resend API"
+        "database": "SQLite",
+        "email_provider": "Resend API",
+        "email": bool(RESEND_API_KEY),
+        "admin_email_configured": bool(ADMIN_EMAIL),
+        "otp": True,
+        "rate_limiting": True,
+        "status": "online"
     })
 
 
@@ -850,162 +1489,250 @@ def home():
 @app.route("/api/health", methods=["GET"])
 def health():
 
+    database_status = "SQLite"
+
     return jsonify({
         "success": True,
         "status": "healthy",
         "server": "Flask",
-        "database": "SQLite",
+        "database": database_status,
         "email": bool(RESEND_API_KEY),
         "email_provider": "Resend API",
         "from_email": RESEND_FROM_EMAIL,
-        "admin_email_configured": bool(ADMIN_EMAIL),
-        "otp": bool(ADMIN_EMAIL)
+        "admin_email_configured": bool(
+            ADMIN_EMAIL
+        ),
+        "otp": True,
+        "rate_limiting": True
     })
 
 
 # ============================================================
-# CONTACT FORM
+# CONTACT API
 # ============================================================
 
-@app.route("/api/contact", methods=["POST"])
+@app.route(
+    "/api/contact",
+    methods=["POST", "OPTIONS"]
+)
 def contact():
 
-    try:
+    if request.method == "OPTIONS":
 
-        data = request.get_json(silent=True) or {}
+        return jsonify({
+            "success": True
+        })
 
-        name = str(
-            data.get("name", "")
-        ).strip()
 
-        email = str(
-            data.get("email", "")
-        ).strip()
+    # --------------------------------------------------------
+    # NEW FEATURE: RATE LIMITING
+    # --------------------------------------------------------
 
-        message = str(
-            data.get("message", "")
-        ).strip()
-
-        # ----------------------------------------------------
-        # VALIDATION
-        # ----------------------------------------------------
-
-        if not name:
-
-            return jsonify({
-                "success": False,
-                "message": "Name is required.",
-                "email_sent": False
-            }), 400
-
-        if not email:
-
-            return jsonify({
-                "success": False,
-                "message": "Email is required.",
-                "email_sent": False
-            }), 400
-
-        if (
-            "@" not in email
-            or "." not in email.split("@")[-1]
-        ):
-
-            return jsonify({
-                "success": False,
-                "message": "Please enter a valid email address.",
-                "email_sent": False
-            }), 400
-
-        if not message:
-
-            return jsonify({
-                "success": False,
-                "message": "Message is required.",
-                "email_sent": False
-            }), 400
-
-        if len(name) > 100:
-
-            return jsonify({
-                "success": False,
-                "message": "Name is too long.",
-                "email_sent": False
-            }), 400
-
-        if len(message) > 5000:
-
-            return jsonify({
-                "success": False,
-                "message": "Message is too long.",
-                "email_sent": False
-            }), 400
-
-        # ----------------------------------------------------
-        # SAVE MESSAGE
-        # ----------------------------------------------------
-
-        received_at = datetime.utcnow().isoformat()
-
-        connection = get_db()
-
-        cursor = connection.execute(
-            """
-            INSERT INTO messages
-            (
-                name,
-                email,
-                message,
-                created_at,
-                is_read
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                name,
-                email,
-                message,
-                received_at,
-                0
-            )
+    ip_address = (
+        request.headers.get(
+            "X-Forwarded-For",
+            request.remote_addr
         )
+        or "unknown"
+    )
 
-        message_id = cursor.lastrowid
+    ip_address = ip_address.split(",")[0].strip()
 
-        connection.commit()
-        connection.close()
+    if is_rate_limited(
+        ip_address
+    ):
 
-        # ----------------------------------------------------
-        # ADMIN EMAIL
-        # ----------------------------------------------------
+        return jsonify({
+            "success": False,
+            "message": (
+                "Too many messages. "
+                "Please wait a moment and try again."
+            )
+        }), 429
 
-        admin_subject = (
-            f"New Portfolio Contact — {name}"
+
+    # --------------------------------------------------------
+    # READ REQUEST
+    # --------------------------------------------------------
+
+    data = request.get_json(
+        silent=True
+    )
+
+    if not data:
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid request data."
+        }), 400
+
+
+    name = str(
+        data.get(
+            "name",
+            ""
         )
+    ).strip()
 
-        admin_text = f"""
-New contact message from your portfolio.
+    email = str(
+        data.get(
+            "email",
+            ""
+        )
+    ).strip()
 
-Name:
-{name}
+    message = str(
+        data.get(
+            "message",
+            ""
+        )
+    ).strip()
 
-Email:
-{email}
 
-Message:
-{message}
+    # --------------------------------------------------------
+    # VALIDATION
+    # --------------------------------------------------------
 
-----------------------------------------
+    if not name:
 
-Message ID:
-{message_id}
+        return jsonify({
+            "success": False,
+            "message": "Name is required."
+        }), 400
 
-Received:
-{received_at}
+    if len(name) > 100:
 
-Reply to:
-{email}
-"""
+        return jsonify({
+            "success": False,
+            "message": "Name is too long."
+        }), 400
+
+
+    if not email:
+
+        return jsonify({
+            "success": False,
+            "message": "Email is required."
+        }), 400
+
+
+    if "@" not in email or "." not in email:
+
+        return jsonify({
+            "success": False,
+            "message": "Please enter a valid email."
+        }), 400
+
+
+    if len(email) > 180:
+
+        return jsonify({
+            "success": False,
+            "message": "Email is too long."
+        }), 400
+
+
+    if not message:
+
+        return jsonify({
+            "success": False,
+            "message": "Message is required."
+        }), 400
+
+
+    if len(message) < 5:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Please enter a more detailed message."
+            )
+        }), 400
+
+
+    if len(message) > 5000:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Message must be under 5000 characters."
+            )
+        }), 400
+
+
+    # --------------------------------------------------------
+    # TIMESTAMP
+    # --------------------------------------------------------
+
+    received_at = datetime.utcnow().strftime(
+        "%Y-%m-%d %H:%M:%S UTC"
+    )
+
+
+    # --------------------------------------------------------
+    # USER AGENT
+    # --------------------------------------------------------
+
+    user_agent = (
+        request.headers.get(
+            "User-Agent",
+            ""
+        )[:500]
+    )
+
+
+    # --------------------------------------------------------
+    # SAVE MESSAGE
+    # --------------------------------------------------------
+
+    connection = get_db()
+
+    cursor = connection.execute(
+        """
+        INSERT INTO messages
+        (
+            name,
+            email,
+            message,
+            created_at,
+            is_read,
+            ip_address,
+            user_agent
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            name,
+            email,
+            message,
+            received_at,
+            0,
+            ip_address,
+            user_agent
+        )
+    )
+
+    message_id = cursor.lastrowid
+
+    connection.commit()
+
+    connection.close()
+
+
+    print(
+        f"Contact message {message_id} saved."
+    )
+
+
+    # --------------------------------------------------------
+    # ADMIN EMAIL
+    # --------------------------------------------------------
+
+    admin_email_sent = False
+
+    admin_email_id = None
+
+    if ADMIN_EMAIL:
 
         admin_html = create_admin_contact_email(
             name=name,
@@ -1015,100 +1742,98 @@ Reply to:
             received_at=received_at
         )
 
-        admin_email_result = send_email(
-            ADMIN_EMAIL,
-            admin_subject,
-            admin_text,
+        admin_text = f"""
+New contact message from {name}
+
+Email:
+{email}
+
+Message:
+{message}
+
+Message ID:
+#{message_id}
+
+Received:
+{received_at}
+"""
+
+        admin_result = send_email(
+            to_email=ADMIN_EMAIL,
+            subject=(
+                f"New Portfolio Contact Message "
+                f"from {name}"
+            ),
+            body=admin_text,
             html_body=admin_html,
             reply_to=email
         )
 
-        admin_email_sent = bool(
-            admin_email_result.get(
-                "success",
-                False
-            )
+        admin_email_sent = (
+            admin_result.get("success")
+            is True
         )
 
-        # ----------------------------------------------------
-        # VISITOR CONFIRMATION EMAIL
-        # ----------------------------------------------------
-
-        visitor_subject = (
-            "Thanks for reaching out — Atul Mahaiskar"
+        admin_email_id = (
+            admin_result.get("email_id")
         )
 
-        visitor_text = f"""
+
+    # --------------------------------------------------------
+    # VISITOR CONFIRMATION
+    # --------------------------------------------------------
+
+    visitor_email_sent = False
+
+    visitor_email_id = None
+
+    visitor_html = create_visitor_confirmation_email(
+        name=name,
+        message_id=message_id
+    )
+
+    visitor_text = f"""
 Hi {name},
 
-Thank you for reaching out through my portfolio.
+Thank you for contacting Atul Mahaiskar.
 
-Your message has been successfully received.
+Your message has been received successfully.
 
-I appreciate you taking the time to contact me.
-I will review your message and get back to you
-as soon as possible.
-
-Message Reference: #{message_id}
-Received: {received_at}
+Message reference:
+#{message_id}
 
 Portfolio:
 {PORTFOLIO_URL}
 
-Best regards,
-
+Regards,
 Atul Mahaiskar
 Software Developer • AI/ML • Full Stack
 """
 
-        visitor_html = create_visitor_confirmation_email(
-            name=name,
-            message_id=message_id,
-            received_at=received_at
-        )
+    visitor_result = send_email(
+        to_email=email,
+        subject=(
+            "Thanks for contacting Atul Mahaiskar"
+        ),
+        body=visitor_text,
+        html_body=visitor_html
+    )
 
-        visitor_email_result = send_email(
-            email,
-            visitor_subject,
-            visitor_text,
-            html_body=visitor_html
-        )
+    visitor_email_sent = (
+        visitor_result.get("success")
+        is True
+    )
 
-        visitor_email_sent = bool(
-            visitor_email_result.get(
-                "success",
-                False
-            )
-        )
+    visitor_email_id = (
+        visitor_result.get("email_id")
+    )
 
-        # ----------------------------------------------------
-        # SUCCESS
-        # ----------------------------------------------------
 
-        if admin_email_sent:
+    # --------------------------------------------------------
+    # FINAL RESPONSE
+    # --------------------------------------------------------
 
-            print(
-                f"Contact message {message_id} "
-                "processed successfully."
-            )
-
-            return jsonify({
-                "success": True,
-                "message": (
-                    "Your message has been sent successfully."
-                ),
-                "message_id": message_id,
-                "email_sent": True,
-                "admin_email_sent": True,
-                "confirmation_email_sent": visitor_email_sent,
-                "email_id": admin_email_result.get(
-                    "email_id"
-                )
-            }), 200
-
-        # ----------------------------------------------------
-        # DATABASE SUCCESS / EMAIL FAILURE
-        # ----------------------------------------------------
+    if not admin_email_sent:
 
         print(
             f"Contact message {message_id} saved, "
@@ -1118,309 +1843,184 @@ Software Developer • AI/ML • Full Stack
         return jsonify({
             "success": False,
             "message": (
-                "Your message was received, "
-                "but the email notification could not be sent."
+                "Your message was saved, "
+                "but email delivery failed. "
+                "Please try again later."
             ),
             "message_id": message_id,
             "email_sent": False,
             "admin_email_sent": False,
-            "confirmation_email_sent": visitor_email_sent
+            "confirmation_email_sent": (
+                visitor_email_sent
+            )
         }), 502
 
-    except Exception as error:
 
-        print("=" * 60)
-        print("CONTACT API ERROR")
-        print(
-            f"{type(error).__name__}: {error}"
-        )
-        print("=" * 60)
-
-        return jsonify({
-            "success": False,
-            "message": "Unable to process your message.",
-            "email_sent": False
-        }), 500
+    print(
+        f"Contact message {message_id} "
+        "processed successfully."
+    )
 
 
-# ============================================================
-# ADMIN CONFIGURATION
-# ============================================================
-
-ADMIN_USERNAME = os.getenv(
-    "ADMIN_USERNAME",
-    "admin"
-)
-
-ADMIN_PASSWORD_HASH = os.getenv(
-    "ADMIN_PASSWORD_HASH",
-    ""
-)
+    return jsonify({
+        "success": True,
+        "message": (
+            "Your message has been sent successfully."
+        ),
+        "message_id": message_id,
+        "email_sent": True,
+        "admin_email_sent": True,
+        "confirmation_email_sent": (
+            visitor_email_sent
+        ),
+        "email_id": admin_email_id,
+        "visitor_email_id": visitor_email_id
+    }), 200
 
 
 # ============================================================
 # ADMIN LOGIN
 # ============================================================
 
-@app.route("/api/admin/login", methods=["POST"])
+@app.route(
+    "/api/admin/login",
+    methods=["POST"]
+)
 def admin_login():
 
-    try:
+    data = request.get_json(
+        silent=True
+    )
 
-        data = request.get_json(silent=True) or {}
-
-        username = str(
-            data.get("username", "")
-        ).strip()
-
-        password = str(
-            data.get("password", "")
-        )
-
-        if not username or not password:
-
-            return jsonify({
-                "success": False,
-                "message": (
-                    "Username and password are required."
-                )
-            }), 400
-
-        if username != ADMIN_USERNAME:
-
-            return jsonify({
-                "success": False,
-                "message": "Invalid credentials."
-            }), 401
-
-        if not ADMIN_PASSWORD_HASH:
-
-            return jsonify({
-                "success": False,
-                "message": (
-                    "Admin password is not configured."
-                )
-            }), 500
-
-        if not check_password_hash(
-            ADMIN_PASSWORD_HASH,
-            password
-        ):
-
-            return jsonify({
-                "success": False,
-                "message": "Invalid credentials."
-            }), 401
-
-        # ----------------------------------------------------
-        # GENERATE OTP
-        # ----------------------------------------------------
-
-        otp = str(
-            random.randint(
-                100000,
-                999999
-            )
-        )
-
-        session["admin_otp"] = otp
-
-        session["admin_otp_expires"] = (
-            datetime.utcnow()
-            + timedelta(
-                minutes=OTP_EXPIRY_MINUTES
-            )
-        ).isoformat()
-
-        session["admin_username"] = username
-        session.permanent = True
-
-        # ----------------------------------------------------
-        # OTP EMAIL
-        # ----------------------------------------------------
-
-        otp_subject = (
-            "Your Portfolio Admin Login OTP"
-        )
-
-        otp_text = f"""
-Your Portfolio Admin Login OTP is:
-
-{otp}
-
-This OTP will expire in
-{OTP_EXPIRY_MINUTES} minutes.
-
-If you did not request this login,
-you can safely ignore this email.
-
-Atul Mahaiskar Portfolio
-"""
-
-        otp_html_content = f"""
-
-<div class="card">
-
-    <span class="label">
-        Verification Code
-    </span>
-
-    <div
-        style="
-            font-size: 34px;
-            font-weight: 800;
-            letter-spacing: 8px;
-            color: #111827;
-            text-align: center;
-            padding: 12px 0;
-        "
-    >
-        {otp}
-    </div>
-
-</div>
-
-
-<p
-    style="
-        margin: 0;
-        color: #64748b;
-        font-size: 13px;
-        line-height: 1.7;
-    "
->
-    This verification code will expire in
-    <strong>{OTP_EXPIRY_MINUTES} minutes</strong>.
-</p>
-
-
-<div class="divider"></div>
-
-
-<p
-    style="
-        margin: 0;
-        color: #94a3b8;
-        font-size: 12px;
-        line-height: 1.7;
-    "
->
-    If you did not request this login,
-    you can safely ignore this email.
-</p>
-
-"""
-
-        otp_html = create_email_layout(
-            heading="Admin Login Verification",
-            subtitle=(
-                "Use the verification code below "
-                "to complete your administrator login."
-            ),
-            content_html=otp_html_content,
-            footer_text=(
-                "This is a security notification from "
-                "your portfolio administration system."
-            )
-        )
-
-        email_result = send_email(
-            ADMIN_EMAIL,
-            otp_subject,
-            otp_text,
-            html_body=otp_html
-        )
-
-        if not email_result["success"]:
-
-            session.clear()
-
-            return jsonify({
-                "success": False,
-                "message": (
-                    "Unable to send OTP email. "
-                    "Please try again later."
-                ),
-                "otp_required": False
-            }), 502
-
-        return jsonify({
-            "success": True,
-            "message": "OTP sent successfully.",
-            "otp_required": True
-        }), 200
-
-    except Exception as error:
-
-        print("=" * 60)
-        print("ADMIN LOGIN ERROR")
-        print(
-            f"{type(error).__name__}: {error}"
-        )
-        print("=" * 60)
+    if not data:
 
         return jsonify({
             "success": False,
-            "message": "Login failed."
+            "message": "Invalid request."
+        }), 400
+
+
+    username = str(
+        data.get(
+            "username",
+            ""
+        )
+    ).strip()
+
+    password = str(
+        data.get(
+            "password",
+            ""
+        )
+    )
+
+
+    if username != ADMIN_USERNAME:
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid username or password."
+        }), 401
+
+
+    if not ADMIN_PASSWORD_HASH:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Admin password is not configured."
+            )
         }), 500
 
 
-# ============================================================
-# VERIFY OTP
-# ============================================================
-
-@app.route(
-    "/api/admin/verify-otp",
-    methods=["POST"]
-)
-def verify_otp():
-
     try:
 
-        data = request.get_json(silent=True) or {}
-
-        entered_otp = str(
-            data.get("otp", "")
-        ).strip()
-
-        stored_otp = session.get(
-            "admin_otp"
+        password_valid = check_password_hash(
+            ADMIN_PASSWORD_HASH,
+            password
         )
 
-        expires_at = session.get(
-            "admin_otp_expires"
+    except Exception:
+
+        password_valid = False
+
+
+    if not password_valid:
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid username or password."
+        }), 401
+
+
+    # --------------------------------------------------------
+    # GENERATE OTP
+    # --------------------------------------------------------
+
+    otp = str(
+        random.randint(
+            100000,
+            999999
         )
+    )
 
-        if not stored_otp or not expires_at:
+    session["admin_otp"] = otp
 
-            return jsonify({
-                "success": False,
-                "message": (
-                    "OTP expired or unavailable."
-                )
-            }), 401
+    session["admin_otp_expires"] = (
+        time.time()
+        +
+        (OTP_EXPIRY_MINUTES * 60)
+    )
 
-        expiry_time = datetime.fromisoformat(
-            expires_at
-        )
+    session["admin_authenticated"] = False
 
-        if datetime.utcnow() > expiry_time:
+    session.permanent = True
 
-            session.clear()
 
-            return jsonify({
-                "success": False,
-                "message": "OTP has expired."
-            }), 401
+    # --------------------------------------------------------
+    # SEND OTP
+    # --------------------------------------------------------
 
-        if entered_otp != stored_otp:
+    if not ADMIN_EMAIL:
 
-            return jsonify({
-                "success": False,
-                "message": "Invalid OTP."
-            }), 401
+        return jsonify({
+            "success": False,
+            "message": (
+                "Admin email is not configured."
+            )
+        }), 500
 
-        session["admin_authenticated"] = True
+
+    otp_html = create_otp_email(
+        otp
+    )
+
+    otp_text = f"""
+Atul Mahaiskar Portfolio
+Admin Verification Code
+
+Your OTP is:
+
+{otp}
+
+This code expires in {OTP_EXPIRY_MINUTES} minutes.
+
+If you did not request this code,
+ignore this email.
+"""
+
+    result = send_email(
+        to_email=ADMIN_EMAIL,
+        subject=(
+            "Admin Verification Code • "
+            "Atul Mahaiskar Portfolio"
+        ),
+        body=otp_text,
+        html_body=otp_html
+    )
+
+
+    if not result.get("success"):
 
         session.pop(
             "admin_otp",
@@ -1433,27 +2033,121 @@ def verify_otp():
         )
 
         return jsonify({
-            "success": True,
+            "success": False,
             "message": (
-                "OTP verified successfully."
+                "Unable to send verification code."
             )
-        }), 200
+        }), 502
 
-    except Exception as error:
 
-        print("=" * 60)
-        print("OTP VERIFICATION ERROR")
-        print(
-            f"{type(error).__name__}: {error}"
+    return jsonify({
+        "success": True,
+        "message": (
+            "Verification code sent successfully."
+        ),
+        "expires_in": (
+            OTP_EXPIRY_MINUTES * 60
         )
-        print("=" * 60)
+    }), 200
+
+
+# ============================================================
+# VERIFY OTP
+# ============================================================
+
+@app.route(
+    "/api/admin/verify-otp",
+    methods=["POST"]
+)
+def verify_otp():
+
+    data = request.get_json(
+        silent=True
+    )
+
+    if not data:
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid request."
+        }), 400
+
+
+    submitted_otp = str(
+        data.get(
+            "otp",
+            ""
+        )
+    ).strip()
+
+    stored_otp = session.get(
+        "admin_otp"
+    )
+
+    expiry = session.get(
+        "admin_otp_expires"
+    )
+
+
+    if not stored_otp or not expiry:
 
         return jsonify({
             "success": False,
             "message": (
-                "OTP verification failed."
+                "No active verification code."
             )
-        }), 500
+        }), 401
+
+
+    if time.time() > float(expiry):
+
+        session.pop(
+            "admin_otp",
+            None
+        )
+
+        session.pop(
+            "admin_otp_expires",
+            None
+        )
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Verification code has expired."
+            )
+        }), 401
+
+
+    if submitted_otp != stored_otp:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Invalid verification code."
+            )
+        }), 401
+
+
+    session["admin_authenticated"] = True
+
+    session.pop(
+        "admin_otp",
+        None
+    )
+
+    session.pop(
+        "admin_otp_expires",
+        None
+    )
+
+
+    return jsonify({
+        "success": True,
+        "message": (
+            "Administrator authentication successful."
+        )
+    }), 200
 
 
 # ============================================================
@@ -1466,14 +2160,33 @@ def verify_otp():
 )
 def admin_status():
 
+    authenticated = (
+        session.get(
+            "admin_authenticated",
+            False
+        )
+        is True
+    )
+
     return jsonify({
         "success": True,
-        "authenticated": bool(
-            session.get(
-                "admin_authenticated"
-            )
-        )
+        "authenticated": authenticated
     })
+
+
+# ============================================================
+# AUTHENTICATION HELPER
+# ============================================================
+
+def require_admin():
+
+    return (
+        session.get(
+            "admin_authenticated",
+            False
+        )
+        is True
+    )
 
 
 # ============================================================
@@ -1486,60 +2199,58 @@ def admin_status():
 )
 def get_messages():
 
-    if not session.get(
-        "admin_authenticated"
-    ):
+    if not require_admin():
 
         return jsonify({
             "success": False,
             "message": "Unauthorized."
         }), 401
 
-    try:
 
-        connection = get_db()
+    connection = get_db()
 
-        rows = connection.execute(
-            """
-            SELECT
-                id,
-                name,
-                email,
-                message,
-                created_at,
-                is_read
-            FROM messages
-            ORDER BY id DESC
-            """
-        ).fetchall()
+    rows = connection.execute(
+        """
+        SELECT
+            id,
+            name,
+            email,
+            message,
+            created_at,
+            is_read,
+            ip_address,
+            user_agent
+        FROM messages
+        ORDER BY id DESC
+        """
+    ).fetchall()
 
-        connection.close()
+    connection.close()
 
-        messages = [
-            dict(row)
-            for row in rows
-        ]
 
-        return jsonify({
-            "success": True,
-            "messages": messages
-        }), 200
+    messages = []
 
-    except Exception as error:
+    for row in rows:
 
-        print("=" * 60)
-        print("GET MESSAGES ERROR")
-        print(
-            f"{type(error).__name__}: {error}"
-        )
-        print("=" * 60)
+        messages.append({
+            "id": row["id"],
+            "name": row["name"],
+            "email": row["email"],
+            "message": row["message"],
+            "created_at": row["created_at"],
+            "is_read": bool(
+                row["is_read"]
+            ),
+            "ip_address": row["ip_address"],
+            "user_agent": row["user_agent"]
+        })
 
-        return jsonify({
-            "success": False,
-            "message": (
-                "Unable to load messages."
-            )
-        }), 500
+
+    return jsonify({
+        "success": True,
+        "messages": messages,
+        "count": len(messages)
+    }), 200
 
 
 # ============================================================
@@ -1550,55 +2261,52 @@ def get_messages():
     "/api/messages/<int:message_id>/read",
     methods=["PATCH", "POST"]
 )
-def mark_message_read(message_id):
+def mark_message_read(
+    message_id
+):
 
-    if not session.get(
-        "admin_authenticated"
-    ):
+    if not require_admin():
 
         return jsonify({
             "success": False,
             "message": "Unauthorized."
         }), 401
 
-    try:
 
-        connection = get_db()
+    connection = get_db()
 
-        connection.execute(
-            """
-            UPDATE messages
-            SET is_read = 1
-            WHERE id = ?
-            """,
-            (message_id,)
-        )
+    cursor = connection.execute(
+        """
+        UPDATE messages
+        SET is_read = 1
+        WHERE id = ?
+        """,
+        (message_id,)
+    )
 
-        connection.commit()
-        connection.close()
+    connection.commit()
 
-        return jsonify({
-            "success": True,
-            "message": (
-                "Message marked as read."
-            )
-        }), 200
+    updated = (
+        cursor.rowcount > 0
+    )
 
-    except Exception as error:
+    connection.close()
 
-        print("=" * 60)
-        print("MARK MESSAGE READ ERROR")
-        print(
-            f"{type(error).__name__}: {error}"
-        )
-        print("=" * 60)
+
+    if not updated:
 
         return jsonify({
             "success": False,
-            "message": (
-                "Unable to update message."
-            )
-        }), 500
+            "message": "Message not found."
+        }), 404
+
+
+    return jsonify({
+        "success": True,
+        "message": (
+            "Message marked as read."
+        )
+    }), 200
 
 
 # ============================================================
@@ -1615,14 +2323,12 @@ def admin_logout():
 
     return jsonify({
         "success": True,
-        "message": (
-            "Logged out successfully."
-        )
+        "message": "Logged out successfully."
     }), 200
 
 
 # ============================================================
-# ERROR HANDLERS
+# 404 HANDLER
 # ============================================================
 
 @app.errorhandler(404)
@@ -1630,14 +2336,16 @@ def not_found(error):
 
     return jsonify({
         "success": False,
-        "message": (
-            "Endpoint not found."
-        )
+        "message": "Endpoint not found."
     }), 404
 
 
+# ============================================================
+# 500 HANDLER
+# ============================================================
+
 @app.errorhandler(500)
-def internal_error(error):
+def internal_server_error(error):
 
     return jsonify({
         "success": False,
@@ -1663,5 +2371,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=False
+        debug=True
     )
