@@ -1,8 +1,10 @@
 import os
+import re
 import random
+import secrets
 import sqlite3
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote
 
 import resend
@@ -58,7 +60,9 @@ CORS(
 # DATABASE
 # ============================================================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
 DATABASE_DIR = os.path.join(
     BASE_DIR,
@@ -77,8 +81,13 @@ os.makedirs(
 
 
 def get_db():
+    """
+    Create and return a SQLite database connection.
+    """
+
     connection = sqlite3.connect(
-        DATABASE_PATH
+        DATABASE_PATH,
+        timeout=10
     )
 
     connection.row_factory = sqlite3.Row
@@ -87,50 +96,64 @@ def get_db():
 
 
 def init_database():
+    """
+    Initialize the messages table.
+
+    Existing installations are kept compatible by
+    automatically adding missing columns.
+    """
 
     connection = get_db()
 
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            message TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            is_read INTEGER DEFAULT 0,
-            ip_address TEXT,
-            user_agent TEXT
-        )
-        """
-    )
+    try:
 
-    connection.commit()
-
-    # --------------------------------------------------------
-    # Backward compatibility for existing database
-    # --------------------------------------------------------
-
-    existing_columns = {
-        row["name"]
-        for row in connection.execute(
-            "PRAGMA table_info(messages)"
-        ).fetchall()
-    }
-
-    if "ip_address" not in existing_columns:
         connection.execute(
-            "ALTER TABLE messages ADD COLUMN ip_address TEXT"
+            """
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                is_read INTEGER DEFAULT 0,
+                ip_address TEXT,
+                user_agent TEXT
+            )
+            """
         )
 
-    if "user_agent" not in existing_columns:
-        connection.execute(
-            "ALTER TABLE messages ADD COLUMN user_agent TEXT"
-        )
+        connection.commit()
 
-    connection.commit()
+        existing_columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(messages)"
+            ).fetchall()
+        }
 
-    connection.close()
+        if "ip_address" not in existing_columns:
+
+            connection.execute(
+                """
+                ALTER TABLE messages
+                ADD COLUMN ip_address TEXT
+                """
+            )
+
+        if "user_agent" not in existing_columns:
+
+            connection.execute(
+                """
+                ALTER TABLE messages
+                ADD COLUMN user_agent TEXT
+                """
+            )
+
+        connection.commit()
+
+    finally:
+
+        connection.close()
 
 
 init_database()
@@ -163,6 +186,7 @@ OTP_EXPIRY_MINUTES = int(
 )
 
 if RESEND_API_KEY:
+
     resend.api_key = RESEND_API_KEY
 
 
@@ -170,7 +194,9 @@ if RESEND_API_KEY:
 # PORTFOLIO BRANDING
 # ============================================================
 
-PORTFOLIO_NAME = "Atul Mahaiskar"
+PORTFOLIO_NAME = (
+    "Atul Mahaiskar"
+)
 
 PORTFOLIO_TITLE = (
     "Software Developer • AI/ML • Full Stack"
@@ -199,7 +225,7 @@ ADMIN_PASSWORD_HASH = os.getenv(
 
 
 # ============================================================
-# SIMPLE RATE LIMITING
+# RATE LIMITING
 # ============================================================
 
 RATE_LIMIT_WINDOW_SECONDS = int(
@@ -220,6 +246,12 @@ contact_rate_limits = {}
 
 
 def is_rate_limited(ip_address):
+    """
+    Simple in-memory rate limiter.
+
+    Default:
+    3 requests per 60 seconds per IP.
+    """
 
     now = time.time()
 
@@ -236,13 +268,19 @@ def is_rate_limited(ip_address):
 
     if len(requests_for_ip) >= RATE_LIMIT_MAX_REQUESTS:
 
-        contact_rate_limits[ip_address] = requests_for_ip
+        contact_rate_limits[
+            ip_address
+        ] = requests_for_ip
 
         return True
 
-    requests_for_ip.append(now)
+    requests_for_ip.append(
+        now
+    )
 
-    contact_rate_limits[ip_address] = requests_for_ip
+    contact_rate_limits[
+        ip_address
+    ] = requests_for_ip
 
     return False
 
@@ -262,6 +300,43 @@ def escape_html(value):
         .replace(">", "&gt;")
         .replace('"', "&quot;")
         .replace("'", "&#039;")
+    )
+
+
+# ============================================================
+# EMAIL VALIDATION
+# ============================================================
+
+EMAIL_PATTERN = re.compile(
+    r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+"
+    r"@[A-Za-z0-9-]+"
+    r"(?:\.[A-Za-z0-9-]+)+$"
+)
+
+
+def is_valid_email(email):
+
+    if not email:
+        return False
+
+    if len(email) > 180:
+        return False
+
+    return bool(
+        EMAIL_PATTERN.match(email)
+    )
+
+
+# ============================================================
+# UTC TIMESTAMP
+# ============================================================
+
+def get_current_utc():
+
+    return datetime.now(
+        timezone.utc
+    ).strftime(
+        "%Y-%m-%d %H:%M:%S UTC"
     )
 
 
@@ -287,6 +362,10 @@ def create_email_layout(
         subtitle
     )
 
+    safe_footer = escape_html(
+        footer_text
+    )
+
     return f"""
 <!DOCTYPE html>
 
@@ -306,6 +385,11 @@ def create_email_layout(
     content="light"
 >
 
+<meta
+    name="supported-color-schemes"
+    content="light"
+>
+
 <title>
     {safe_heading}
 </title>
@@ -316,10 +400,14 @@ def create_email_layout(
     box-sizing: border-box;
 }}
 
+html,
 body {{
     margin: 0;
     padding: 0;
+    width: 100%;
+}}
 
+body {{
     background: #eef2f7;
 
     font-family:
@@ -342,6 +430,11 @@ a {{
     text-decoration: none;
 }}
 
+
+/* =========================================================
+   OUTER WRAPPER
+========================================================= */
+
 .email-wrapper {{
     width: 100%;
 
@@ -349,19 +442,26 @@ a {{
         42px 15px;
 }}
 
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
 .email-container {{
     width: 100%;
+
     max-width: 650px;
 
     margin: 0 auto;
 
     background: #ffffff;
 
+    border:
+        1px solid #e5e7eb;
+
     border-radius: 22px;
 
     overflow: hidden;
-
-    border: 1px solid #e5e7eb;
 
     box-shadow:
         0 20px 60px
@@ -371,101 +471,60 @@ a {{
 
 /* =========================================================
    HEADER
+   NO PHOTO
+   NO IMAGE
 ========================================================= */
 
 .header {{
-    position: relative;
-
     padding:
-        34px 36px;
+        32px 36px;
 
     background:
         linear-gradient(
             135deg,
-            #05070c 0%,
-            #111827 50%,
+            #020617 0%,
+            #0f172a 55%,
             #1e293b 100%
         );
 
     color: #ffffff;
 }}
 
-.header-glow {{
-    position: absolute;
-
-    width: 190px;
-    height: 190px;
-
-    right: -80px;
-    top: -95px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(255,255,255,0.055);
+.brand-table {{
+    width: 100%;
 }}
 
-.header-line {{
-    position: absolute;
+.logo-cell {{
+    width: 58px;
 
-    left: 36px;
-    right: 36px;
-    bottom: 0;
-
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,0.20),
-            transparent
-        );
-}}
-
-.brand {{
-    position: relative;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    z-index: 2;
+    vertical-align: middle;
 }}
 
 .logo {{
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
 
-    min-width: 56px;
+    line-height: 52px;
 
-    display: flex;
+    text-align: center;
 
-    align-items: center;
-    justify-content: center;
+    border-radius: 15px;
 
-    border-radius: 16px;
-
-    background:
-        linear-gradient(
-            145deg,
-            #ffffff,
-            #e5e7eb
-        );
+    background: #ffffff;
 
     color: #0f172a;
 
-    font-size: 18px;
+    font-size: 17px;
 
     font-weight: 900;
 
-    letter-spacing: -2px;
+    letter-spacing: -1.8px;
+}}
 
-    box-shadow:
-        0 9px 25px
-        rgba(0,0,0,0.25);
+.brand-cell {{
+    padding-left: 15px;
+
+    vertical-align: middle;
 }}
 
 .brand-name {{
@@ -475,6 +534,8 @@ a {{
 
     font-size: 19px;
 
+    line-height: 1.25;
+
     font-weight: 800;
 
     letter-spacing: -0.3px;
@@ -483,13 +544,13 @@ a {{
 .brand-title {{
     margin-top: 5px;
 
-    color: #aeb8c8;
+    color: #94a3b8;
 
     font-size: 11px;
 
-    line-height: 1.4;
+    line-height: 1.5;
 
-    letter-spacing: 0.3px;
+    letter-spacing: 0.25px;
 }}
 
 .brand-status {{
@@ -500,24 +561,32 @@ a {{
     padding:
         4px 9px;
 
-    border-radius: 999px;
-
-    background:
-        rgba(255,255,255,0.06);
-
     border:
-        1px solid
-        rgba(255,255,255,0.10);
+        1px solid #334155;
+
+    border-radius: 999px;
 
     color: #cbd5e1;
 
-    font-size: 9px;
+    background: transparent;
+
+    font-size: 8px;
+
+    line-height: 1.2;
 
     font-weight: 800;
 
     letter-spacing: 0.8px;
 
     text-transform: uppercase;
+}}
+
+.header-divider {{
+    height: 1px;
+
+    margin-top: 27px;
+
+    background: #334155;
 }}
 
 
@@ -535,7 +604,9 @@ a {{
 
     color: #64748b;
 
-    font-size: 10px;
+    font-size: 9px;
+
+    line-height: 1.4;
 
     font-weight: 800;
 
@@ -551,9 +622,9 @@ a {{
 
     font-size: 28px;
 
-    line-height: 1.2;
+    line-height: 1.25;
 
-    font-weight: 850;
+    font-weight: 800;
 
     letter-spacing: -0.8px;
 }}
@@ -571,7 +642,7 @@ a {{
 
 
 /* =========================================================
-   STATUS BADGE
+   STATUS
 ========================================================= */
 
 .message-status {{
@@ -582,20 +653,22 @@ a {{
     padding:
         6px 10px;
 
-    border-radius: 999px;
-
-    background: #f1f5f9;
-
     border:
         1px solid #e2e8f0;
 
+    border-radius: 999px;
+
+    background: #f8fafc;
+
     color: #475569;
 
-    font-size: 9px;
+    font-size: 8px;
+
+    line-height: 1.2;
 
     font-weight: 800;
 
-    letter-spacing: 0.9px;
+    letter-spacing: 1px;
 
     text-transform: uppercase;
 }}
@@ -625,7 +698,7 @@ a {{
 
     color: #64748b;
 
-    font-size: 10px;
+    font-size: 9px;
 
     font-weight: 800;
 
@@ -637,9 +710,9 @@ a {{
 .value {{
     color: #172033;
 
-    font-size: 15px;
+    font-size: 14px;
 
-    line-height: 1.65;
+    line-height: 1.7;
 
     word-break: break-word;
 }}
@@ -647,7 +720,7 @@ a {{
 .email-link {{
     color: #334155;
 
-    font-weight: 650;
+    font-weight: 700;
 
     border-bottom:
         1px solid #cbd5e1;
@@ -676,7 +749,7 @@ a {{
 
 
 /* =========================================================
-   META
+   META INFORMATION
 ========================================================= */
 
 .meta {{
@@ -706,7 +779,7 @@ a {{
 
     color: #94a3b8;
 
-    font-size: 9px;
+    font-size: 8px;
 
     font-weight: 800;
 
@@ -721,6 +794,8 @@ a {{
     font-size: 11px;
 
     font-weight: 650;
+
+    word-break: break-word;
 }}
 
 
@@ -740,15 +815,15 @@ a {{
 
     border-radius: 11px;
 
-    background: #111827;
+    background: #0f172a;
 
     color: #ffffff !important;
 
-    font-size: 13px;
+    font-size: 12px;
 
     font-weight: 750;
 
-    letter-spacing: 0.1px;
+    line-height: 1.4;
 
     box-shadow:
         0 8px 20px
@@ -823,7 +898,7 @@ a {{
 
     color: #cbd5e1;
 
-    font-size: 9px;
+    font-size: 8px;
 
     font-weight: 750;
 
@@ -850,19 +925,26 @@ a {{
 
     .header {{
         padding:
-            27px 22px;
+            27px 20px;
     }}
 
-    .header-line {{
-        left: 22px;
-        right: 22px;
+    .logo-cell {{
+        width: 52px;
     }}
 
     .logo {{
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
 
-        min-width: 48px;
+        line-height: 46px;
+
+        border-radius: 13px;
+
+        font-size: 15px;
+    }}
+
+    .brand-cell {{
+        padding-left: 11px;
     }}
 
     .brand-name {{
@@ -919,38 +1001,44 @@ a {{
 
 
 <!-- =======================================================
-     PREMIUM AM HEADER
+     AM BRAND HEADER
 ======================================================== -->
 
 <div class="header">
 
-    <div class="header-glow"></div>
+    <table class="brand-table">
 
-    <div class="brand">
+        <tr>
 
-        <div class="logo">
-            {EMAIL_LOGO_TEXT}
-        </div>
+            <td class="logo-cell">
 
-        <div>
+                <div class="logo">
+                    {EMAIL_LOGO_TEXT}
+                </div>
 
-            <div class="brand-name">
-                {PORTFOLIO_NAME}
-            </div>
+            </td>
 
-            <div class="brand-title">
-                {PORTFOLIO_TITLE}
-            </div>
+            <td class="brand-cell">
 
-            <div class="brand-status">
-                Portfolio Communication
-            </div>
+                <div class="brand-name">
+                    {PORTFOLIO_NAME}
+                </div>
 
-        </div>
+                <div class="brand-title">
+                    {PORTFOLIO_TITLE}
+                </div>
 
-    </div>
+                <div class="brand-status">
+                    Portfolio Communication
+                </div>
 
-    <div class="header-line"></div>
+            </td>
+
+        </tr>
+
+    </table>
+
+    <div class="header-divider"></div>
 
 </div>
 
@@ -985,11 +1073,11 @@ a {{
 <div class="footer">
 
     <div class="footer-brand">
-        Atul Mahaiskar
+        {PORTFOLIO_NAME}
     </div>
 
     <p class="footer-text">
-        {escape_html(footer_text)}
+        {safe_footer}
     </p>
 
     <a
@@ -1028,11 +1116,25 @@ def create_admin_contact_email(
     received_at
 ):
 
-    safe_name = escape_html(name)
-    safe_email = escape_html(email)
-    safe_message = escape_html(message)
-    safe_message_id = escape_html(message_id)
-    safe_received_at = escape_html(received_at)
+    safe_name = escape_html(
+        name
+    )
+
+    safe_email = escape_html(
+        email
+    )
+
+    safe_message = escape_html(
+        message
+    )
+
+    safe_message_id = escape_html(
+        message_id
+    )
+
+    safe_received_at = escape_html(
+        received_at
+    )
 
     reply_subject = quote(
         "Re: Your message to Atul Mahaiskar"
@@ -1040,106 +1142,106 @@ def create_admin_contact_email(
 
     content = f"""
 
-    <div class="message-status">
-        NEW MESSAGE
+<div class="message-status">
+    NEW MESSAGE
+</div>
+
+
+<div class="card">
+
+    <span class="label">
+        From
+    </span>
+
+    <div class="value">
+        {safe_name}
     </div>
 
-
-    <div class="card">
-
-        <span class="label">
-            From
-        </span>
-
-        <div class="value">
-            {safe_name}
-        </div>
-
-    </div>
+</div>
 
 
-    <div class="card">
+<div class="card">
 
-        <span class="label">
-            Email Address
-        </span>
+    <span class="label">
+        Email Address
+    </span>
 
-        <div class="value">
-
-            <a
-                class="email-link"
-                href="mailto:{safe_email}"
-            >
-                {safe_email}
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <div class="card">
-
-        <span class="label">
-            Message
-        </span>
-
-        <div class="message-box">
-            {safe_message}
-        </div>
-
-    </div>
-
-
-    <table class="meta">
-
-        <tr>
-
-            <td class="meta-item">
-
-                <span class="meta-label">
-                    Message ID
-                </span>
-
-                <span class="meta-value">
-                    #{safe_message_id}
-                </span>
-
-            </td>
-
-
-            <td class="meta-item">
-
-                <span class="meta-label">
-                    Received
-                </span>
-
-                <span class="meta-value">
-                    {safe_received_at}
-                </span>
-
-            </td>
-
-        </tr>
-
-    </table>
-
-
-    <div class="divider"></div>
-
-
-    <div class="button-wrapper">
+    <div class="value">
 
         <a
-            class="button"
-            href="mailto:{safe_email}?subject={reply_subject}"
+            class="email-link"
+            href="mailto:{safe_email}"
         >
-            Reply to {safe_name}
+            {safe_email}
         </a>
 
     </div>
 
-    """
+</div>
+
+
+<div class="card">
+
+    <span class="label">
+        Message
+    </span>
+
+    <div class="message-box">
+        {safe_message}
+    </div>
+
+</div>
+
+
+<table class="meta">
+
+<tr>
+
+    <td class="meta-item">
+
+        <span class="meta-label">
+            Message ID
+        </span>
+
+        <span class="meta-value">
+            #{safe_message_id}
+        </span>
+
+    </td>
+
+
+    <td class="meta-item">
+
+        <span class="meta-label">
+            Received
+        </span>
+
+        <span class="meta-value">
+            {safe_received_at}
+        </span>
+
+    </td>
+
+</tr>
+
+</table>
+
+
+<div class="divider"></div>
+
+
+<div class="button-wrapper">
+
+    <a
+        class="button"
+        href="mailto:{safe_email}?subject={reply_subject}"
+    >
+        Reply to {safe_name}
+    </a>
+
+</div>
+
+"""
 
     return create_email_layout(
         heading="New Contact Message",
@@ -1175,67 +1277,67 @@ def create_visitor_confirmation_email(
 
     content = f"""
 
-    <div class="message-status">
-        MESSAGE RECEIVED
+<div class="message-status">
+    MESSAGE RECEIVED
+</div>
+
+
+<div class="card">
+
+    <span class="label">
+        Hello
+    </span>
+
+    <div class="value">
+        Hi {safe_name},
     </div>
 
-
-    <div class="card">
-
-        <span class="label">
-            Hello
-        </span>
-
-        <div class="value">
-            Hi {safe_name},
-        </div>
-
-    </div>
+</div>
 
 
-    <div class="card">
+<div class="card">
 
-        <div class="value">
+    <div class="value">
 
-            Thank you for reaching out through
-            the Atul Mahaiskar portfolio.
+        Thank you for reaching out through
+        the Atul Mahaiskar portfolio.
 
-            <br><br>
+        <br><br>
 
-            Your message has been successfully
-            received. I appreciate you taking the
-            time to get in touch.
-
-        </div>
-
-    </div>
-
-
-    <div class="card">
-
-        <span class="label">
-            Message Reference
-        </span>
-
-        <div class="value">
-            #{safe_message_id}
-        </div>
+        Your message has been successfully
+        received. I appreciate you taking the
+        time to get in touch.
 
     </div>
 
+</div>
 
-    <div class="button-wrapper">
 
-        <a
-            class="button"
-            href="{PORTFOLIO_URL}"
-        >
-            Visit My Portfolio ↗
-        </a>
+<div class="card">
 
+    <span class="label">
+        Message Reference
+    </span>
+
+    <div class="value">
+        #{safe_message_id}
     </div>
 
-    """
+</div>
+
+
+<div class="button-wrapper">
+
+    <a
+        class="button"
+        href="{PORTFOLIO_URL}"
+    >
+        Visit My Portfolio ↗
+    </a>
+
+</div>
+
+"""
 
     return create_email_layout(
         heading="Thanks for reaching out",
@@ -1264,56 +1366,56 @@ def create_otp_email(
 
     content = f"""
 
-    <div class="message-status">
-        SECURITY VERIFICATION
+<div class="message-status">
+    SECURITY VERIFICATION
+</div>
+
+
+<div class="card">
+
+    <span class="label">
+        Verification Code
+    </span>
+
+    <div
+        style="
+            font-size:32px;
+            font-weight:800;
+            letter-spacing:8px;
+            color:#0f172a;
+            padding:12px 0;
+        "
+    >
+        {safe_otp}
     </div>
 
+    <div
+        style="
+            color:#64748b;
+            font-size:12px;
+            line-height:1.6;
+        "
+    >
+        This code expires in
+        {OTP_EXPIRY_MINUTES} minutes.
+    </div>
 
-    <div class="card">
+</div>
 
-        <span class="label">
-            Your verification code
-        </span>
 
-        <div
-            style="
-                font-size: 32px;
-                font-weight: 850;
-                letter-spacing: 8px;
-                color: #0f172a;
-                padding: 12px 0;
-            "
-        >
-            {safe_otp}
-        </div>
+<div class="card">
 
-        <div
-            style="
-                color: #64748b;
-                font-size: 12px;
-                line-height: 1.6;
-            "
-        >
-            This code expires in
-            {OTP_EXPIRY_MINUTES} minutes.
-        </div>
+    <div class="value">
+
+        If you did not attempt to sign in
+        to the portfolio administration panel,
+        you can safely ignore this email.
 
     </div>
 
+</div>
 
-    <div class="card">
-
-        <div class="value">
-
-            If you did not attempt to sign in
-            to the portfolio administration panel,
-            you can safely ignore this email.
-
-        </div>
-
-    </div>
-
-    """
+"""
 
     return create_email_layout(
         heading="Admin Verification Code",
@@ -1349,14 +1451,18 @@ def send_email(
 
         return {
             "success": False,
-            "error": "Email service is not configured."
+            "error": (
+                "Email service is not configured."
+            )
         }
 
     if not to_email:
 
         return {
             "success": False,
-            "error": "Recipient email is missing."
+            "error": (
+                "Recipient email is missing."
+            )
         }
 
     try:
@@ -1402,7 +1508,10 @@ def send_email(
 
         email_id = None
 
-        if isinstance(result, dict):
+        if isinstance(
+            result,
+            dict
+        ):
 
             email_id = result.get(
                 "id"
@@ -1465,20 +1574,43 @@ def send_email(
 # ROOT
 # ============================================================
 
-@app.route("/", methods=["GET"])
+@app.route(
+    "/",
+    methods=["GET"]
+)
 def root():
 
     return jsonify({
+
         "success": True,
-        "service": "Atul Mahaiskar Portfolio Backend",
-        "server": "Flask",
-        "database": "SQLite",
-        "email_provider": "Resend API",
-        "email": bool(RESEND_API_KEY),
-        "admin_email_configured": bool(ADMIN_EMAIL),
-        "otp": True,
-        "rate_limiting": True,
-        "status": "online"
+
+        "service":
+            "Atul Mahaiskar Portfolio Backend",
+
+        "server":
+            "Flask",
+
+        "database":
+            "SQLite",
+
+        "email_provider":
+            "Resend API",
+
+        "email":
+            bool(RESEND_API_KEY),
+
+        "admin_email_configured":
+            bool(ADMIN_EMAIL),
+
+        "otp":
+            True,
+
+        "rate_limiting":
+            True,
+
+        "status":
+            "online"
+
     })
 
 
@@ -1486,24 +1618,43 @@ def root():
 # HEALTH CHECK
 # ============================================================
 
-@app.route("/api/health", methods=["GET"])
+@app.route(
+    "/api/health",
+    methods=["GET"]
+)
 def health():
 
-    database_status = "SQLite"
-
     return jsonify({
+
         "success": True,
-        "status": "healthy",
-        "server": "Flask",
-        "database": database_status,
-        "email": bool(RESEND_API_KEY),
-        "email_provider": "Resend API",
-        "from_email": RESEND_FROM_EMAIL,
-        "admin_email_configured": bool(
-            ADMIN_EMAIL
-        ),
-        "otp": True,
-        "rate_limiting": True
+
+        "status":
+            "healthy",
+
+        "server":
+            "Flask",
+
+        "database":
+            "SQLite",
+
+        "email":
+            bool(RESEND_API_KEY),
+
+        "email_provider":
+            "Resend API",
+
+        "from_email":
+            RESEND_FROM_EMAIL,
+
+        "admin_email_configured":
+            bool(ADMIN_EMAIL),
+
+        "otp":
+            True,
+
+        "rate_limiting":
+            True
+
     })
 
 
@@ -1517,6 +1668,10 @@ def health():
 )
 def contact():
 
+    # --------------------------------------------------------
+    # CORS PREFLIGHT
+    # --------------------------------------------------------
+
     if request.method == "OPTIONS":
 
         return jsonify({
@@ -1525,7 +1680,7 @@ def contact():
 
 
     # --------------------------------------------------------
-    # NEW FEATURE: RATE LIMITING
+    # CLIENT IP
     # --------------------------------------------------------
 
     ip_address = (
@@ -1536,34 +1691,53 @@ def contact():
         or "unknown"
     )
 
-    ip_address = ip_address.split(",")[0].strip()
+    ip_address = (
+        ip_address
+        .split(",")[0]
+        .strip()
+    )
+
+
+    # --------------------------------------------------------
+    # RATE LIMIT
+    # --------------------------------------------------------
 
     if is_rate_limited(
         ip_address
     ):
 
         return jsonify({
+
             "success": False,
+
             "message": (
                 "Too many messages. "
                 "Please wait a moment and try again."
             )
+
         }), 429
 
 
     # --------------------------------------------------------
-    # READ REQUEST
+    # REQUEST DATA
     # --------------------------------------------------------
 
     data = request.get_json(
         silent=True
     )
 
-    if not data:
+    if not isinstance(
+        data,
+        dict
+    ):
 
         return jsonify({
+
             "success": False,
-            "message": "Invalid request data."
+
+            "message":
+                "Invalid request data."
+
         }), 400
 
 
@@ -1596,67 +1770,89 @@ def contact():
     if not name:
 
         return jsonify({
+
             "success": False,
-            "message": "Name is required."
+
+            "message":
+                "Name is required."
+
         }), 400
+
 
     if len(name) > 100:
 
         return jsonify({
+
             "success": False,
-            "message": "Name is too long."
+
+            "message":
+                "Name is too long."
+
         }), 400
 
 
     if not email:
 
         return jsonify({
+
             "success": False,
-            "message": "Email is required."
+
+            "message":
+                "Email is required."
+
         }), 400
 
 
-    if "@" not in email or "." not in email:
+    if not is_valid_email(
+        email
+    ):
 
         return jsonify({
+
             "success": False,
-            "message": "Please enter a valid email."
-        }), 400
 
+            "message":
+                "Please enter a valid email."
 
-    if len(email) > 180:
-
-        return jsonify({
-            "success": False,
-            "message": "Email is too long."
         }), 400
 
 
     if not message:
 
         return jsonify({
+
             "success": False,
-            "message": "Message is required."
+
+            "message":
+                "Message is required."
+
         }), 400
 
 
     if len(message) < 5:
 
         return jsonify({
+
             "success": False,
+
             "message": (
                 "Please enter a more detailed message."
             )
+
         }), 400
 
 
     if len(message) > 5000:
 
         return jsonify({
+
             "success": False,
+
             "message": (
-                "Message must be under 5000 characters."
+                "Message must be under "
+                "5000 characters."
             )
+
         }), 400
 
 
@@ -1664,8 +1860,8 @@ def contact():
     # TIMESTAMP
     # --------------------------------------------------------
 
-    received_at = datetime.utcnow().strftime(
-        "%Y-%m-%d %H:%M:%S UTC"
+    received_at = (
+        get_current_utc()
     )
 
 
@@ -1685,42 +1881,68 @@ def contact():
     # SAVE MESSAGE
     # --------------------------------------------------------
 
-    connection = get_db()
+    connection = None
 
-    cursor = connection.execute(
-        """
-        INSERT INTO messages
-        (
-            name,
-            email,
-            message,
-            created_at,
-            is_read,
-            ip_address,
-            user_agent
+    try:
+
+        connection = get_db()
+
+        cursor = connection.execute(
+            """
+            INSERT INTO messages
+            (
+                name,
+                email,
+                message,
+                created_at,
+                is_read,
+                ip_address,
+                user_agent
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                name,
+                email,
+                message,
+                received_at,
+                0,
+                ip_address,
+                user_agent
+            )
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            name,
-            email,
-            message,
-            received_at,
-            0,
-            ip_address,
-            user_agent
+
+        message_id = cursor.lastrowid
+
+        connection.commit()
+
+    except sqlite3.Error as error:
+
+        print(
+            "DATABASE ERROR:",
+            error
         )
-    )
 
-    message_id = cursor.lastrowid
+        return jsonify({
 
-    connection.commit()
+            "success": False,
 
-    connection.close()
+            "message": (
+                "Unable to save your message. "
+                "Please try again later."
+            )
+
+        }), 500
+
+    finally:
+
+        if connection:
+
+            connection.close()
 
 
     print(
-        f"Contact message {message_id} saved."
+        f"Contact message #{message_id} saved."
     )
 
 
@@ -1732,14 +1954,18 @@ def contact():
 
     admin_email_id = None
 
+    admin_email_error = None
+
     if ADMIN_EMAIL:
 
-        admin_html = create_admin_contact_email(
-            name=name,
-            email=email,
-            message=message,
-            message_id=message_id,
-            received_at=received_at
+        admin_html = (
+            create_admin_contact_email(
+                name=name,
+                email=email,
+                message=message,
+                message_id=message_id,
+                received_at=received_at
+            )
         )
 
         admin_text = f"""
@@ -1756,26 +1982,45 @@ Message ID:
 
 Received:
 {received_at}
+
+Portfolio:
+{PORTFOLIO_URL}
 """
 
         admin_result = send_email(
+
             to_email=ADMIN_EMAIL,
+
             subject=(
-                f"New Portfolio Contact Message "
+                "New Portfolio Contact Message "
                 f"from {name}"
             ),
+
             body=admin_text,
+
             html_body=admin_html,
+
             reply_to=email
+
         )
 
         admin_email_sent = (
-            admin_result.get("success")
+            admin_result.get(
+                "success"
+            )
             is True
         )
 
         admin_email_id = (
-            admin_result.get("email_id")
+            admin_result.get(
+                "email_id"
+            )
+        )
+
+        admin_email_error = (
+            admin_result.get(
+                "error"
+            )
         )
 
 
@@ -1787,9 +2032,13 @@ Received:
 
     visitor_email_id = None
 
-    visitor_html = create_visitor_confirmation_email(
-        name=name,
-        message_id=message_id
+    visitor_email_error = None
+
+    visitor_html = (
+        create_visitor_confirmation_email(
+            name=name,
+            message_id=message_id
+        )
     )
 
     visitor_text = f"""
@@ -1811,70 +2060,123 @@ Software Developer • AI/ML • Full Stack
 """
 
     visitor_result = send_email(
+
         to_email=email,
+
         subject=(
-            "Thanks for contacting Atul Mahaiskar"
+            "Thanks for contacting "
+            "Atul Mahaiskar"
         ),
+
         body=visitor_text,
+
         html_body=visitor_html
+
     )
 
     visitor_email_sent = (
-        visitor_result.get("success")
+        visitor_result.get(
+            "success"
+        )
         is True
     )
 
     visitor_email_id = (
-        visitor_result.get("email_id")
+        visitor_result.get(
+            "email_id"
+        )
+    )
+
+    visitor_email_error = (
+        visitor_result.get(
+            "error"
+        )
     )
 
 
     # --------------------------------------------------------
-    # FINAL RESPONSE
+    # ADMIN EMAIL FAILURE
     # --------------------------------------------------------
 
     if not admin_email_sent:
 
         print(
-            f"Contact message {message_id} saved, "
-            "but admin email delivery failed."
+            f"Contact message #{message_id} "
+            "was saved, but admin email delivery failed."
         )
 
+        if admin_email_error:
+
+            print(
+                "Admin email error:",
+                admin_email_error
+            )
+
         return jsonify({
+
             "success": False,
+
             "message": (
                 "Your message was saved, "
                 "but email delivery failed. "
                 "Please try again later."
             ),
-            "message_id": message_id,
-            "email_sent": False,
-            "admin_email_sent": False,
-            "confirmation_email_sent": (
-                visitor_email_sent
-            )
+
+            "message_id":
+                message_id,
+
+            "email_sent":
+                False,
+
+            "admin_email_sent":
+                False,
+
+            "confirmation_email_sent":
+                visitor_email_sent,
+
+            "visitor_email_id":
+                visitor_email_id
+
         }), 502
 
 
+    # --------------------------------------------------------
+    # SUCCESS
+    # --------------------------------------------------------
+
     print(
-        f"Contact message {message_id} "
+        f"Contact message #{message_id} "
         "processed successfully."
     )
 
 
     return jsonify({
+
         "success": True,
+
         "message": (
-            "Your message has been sent successfully."
+            "Your message has been "
+            "sent successfully."
         ),
-        "message_id": message_id,
-        "email_sent": True,
-        "admin_email_sent": True,
-        "confirmation_email_sent": (
-            visitor_email_sent
-        ),
-        "email_id": admin_email_id,
-        "visitor_email_id": visitor_email_id
+
+        "message_id":
+            message_id,
+
+        "email_sent":
+            True,
+
+        "admin_email_sent":
+            True,
+
+        "confirmation_email_sent":
+            visitor_email_sent,
+
+        "email_id":
+            admin_email_id,
+
+        "visitor_email_id":
+            visitor_email_id
+
     }), 200
 
 
@@ -1892,11 +2194,18 @@ def admin_login():
         silent=True
     )
 
-    if not data:
+    if not isinstance(
+        data,
+        dict
+    ):
 
         return jsonify({
+
             "success": False,
-            "message": "Invalid request."
+
+            "message":
+                "Invalid request."
+
         }), 400
 
 
@@ -1915,32 +2224,58 @@ def admin_login():
     )
 
 
+    # --------------------------------------------------------
+    # USERNAME
+    # --------------------------------------------------------
+
     if username != ADMIN_USERNAME:
 
         return jsonify({
+
             "success": False,
-            "message": "Invalid username or password."
+
+            "message":
+                "Invalid username or password."
+
         }), 401
 
+
+    # --------------------------------------------------------
+    # PASSWORD CONFIG
+    # --------------------------------------------------------
 
     if not ADMIN_PASSWORD_HASH:
 
         return jsonify({
+
             "success": False,
+
             "message": (
                 "Admin password is not configured."
             )
+
         }), 500
 
 
+    # --------------------------------------------------------
+    # PASSWORD VERIFY
+    # --------------------------------------------------------
+
     try:
 
-        password_valid = check_password_hash(
-            ADMIN_PASSWORD_HASH,
-            password
+        password_valid = (
+            check_password_hash(
+                ADMIN_PASSWORD_HASH,
+                password
+            )
         )
 
-    except Exception:
+    except Exception as error:
+
+        print(
+            "PASSWORD VERIFICATION ERROR:",
+            error
+        )
 
         password_valid = False
 
@@ -1948,20 +2283,23 @@ def admin_login():
     if not password_valid:
 
         return jsonify({
+
             "success": False,
-            "message": "Invalid username or password."
+
+            "message":
+                "Invalid username or password."
+
         }), 401
 
 
     # --------------------------------------------------------
-    # GENERATE OTP
+    # GENERATE SECURE OTP
     # --------------------------------------------------------
 
     otp = str(
-        random.randint(
-            100000,
-            999999
-        )
+        secrets.randbelow(
+            900000
+        ) + 100000
     )
 
     session["admin_otp"] = otp
@@ -1969,7 +2307,10 @@ def admin_login():
     session["admin_otp_expires"] = (
         time.time()
         +
-        (OTP_EXPIRY_MINUTES * 60)
+        (
+            OTP_EXPIRY_MINUTES
+            * 60
+        )
     )
 
     session["admin_authenticated"] = False
@@ -1978,18 +2319,27 @@ def admin_login():
 
 
     # --------------------------------------------------------
-    # SEND OTP
+    # ADMIN EMAIL REQUIRED
     # --------------------------------------------------------
 
     if not ADMIN_EMAIL:
 
+        session.clear()
+
         return jsonify({
+
             "success": False,
+
             "message": (
                 "Admin email is not configured."
             )
+
         }), 500
 
+
+    # --------------------------------------------------------
+    # CREATE OTP EMAIL
+    # --------------------------------------------------------
 
     otp_html = create_otp_email(
         otp
@@ -2003,24 +2353,37 @@ Your OTP is:
 
 {otp}
 
-This code expires in {OTP_EXPIRY_MINUTES} minutes.
+This code expires in
+{OTP_EXPIRY_MINUTES} minutes.
 
 If you did not request this code,
 ignore this email.
 """
 
+
+    # --------------------------------------------------------
+    # SEND OTP
+    # --------------------------------------------------------
+
     result = send_email(
+
         to_email=ADMIN_EMAIL,
+
         subject=(
             "Admin Verification Code • "
             "Atul Mahaiskar Portfolio"
         ),
+
         body=otp_text,
+
         html_body=otp_html
+
     )
 
 
-    if not result.get("success"):
+    if not result.get(
+        "success"
+    ):
 
         session.pop(
             "admin_otp",
@@ -2032,22 +2395,32 @@ ignore this email.
             None
         )
 
+        session["admin_authenticated"] = False
+
         return jsonify({
+
             "success": False,
+
             "message": (
-                "Unable to send verification code."
+                "Unable to send "
+                "verification code."
             )
+
         }), 502
 
 
     return jsonify({
+
         "success": True,
+
         "message": (
-            "Verification code sent successfully."
+            "Verification code "
+            "sent successfully."
         ),
-        "expires_in": (
+
+        "expires_in":
             OTP_EXPIRY_MINUTES * 60
-        )
+
     }), 200
 
 
@@ -2065,11 +2438,18 @@ def verify_otp():
         silent=True
     )
 
-    if not data:
+    if not isinstance(
+        data,
+        dict
+    ):
 
         return jsonify({
+
             "success": False,
-            "message": "Invalid request."
+
+            "message":
+                "Invalid request."
+
         }), 400
 
 
@@ -2089,17 +2469,30 @@ def verify_otp():
     )
 
 
+    # --------------------------------------------------------
+    # NO ACTIVE OTP
+    # --------------------------------------------------------
+
     if not stored_otp or not expiry:
 
         return jsonify({
+
             "success": False,
+
             "message": (
                 "No active verification code."
             )
+
         }), 401
 
 
-    if time.time() > float(expiry):
+    # --------------------------------------------------------
+    # EXPIRY
+    # --------------------------------------------------------
+
+    if time.time() > float(
+        expiry
+    ):
 
         session.pop(
             "admin_otp",
@@ -2112,22 +2505,61 @@ def verify_otp():
         )
 
         return jsonify({
+
             "success": False,
+
             "message": (
-                "Verification code has expired."
+                "Verification code "
+                "has expired."
             )
+
         }), 401
 
 
-    if submitted_otp != stored_otp:
+    # --------------------------------------------------------
+    # OTP FORMAT
+    # --------------------------------------------------------
+
+    if (
+        len(submitted_otp) != 6
+        or not submitted_otp.isdigit()
+    ):
 
         return jsonify({
+
             "success": False,
+
+            "message": (
+                "Please enter a valid "
+                "6-digit verification code."
+            )
+
+        }), 401
+
+
+    # --------------------------------------------------------
+    # OTP CHECK
+    # --------------------------------------------------------
+
+    if not secrets.compare_digest(
+        submitted_otp,
+        stored_otp
+    ):
+
+        return jsonify({
+
+            "success": False,
+
             "message": (
                 "Invalid verification code."
             )
+
         }), 401
 
+
+    # --------------------------------------------------------
+    # AUTHENTICATED
+    # --------------------------------------------------------
 
     session["admin_authenticated"] = True
 
@@ -2143,10 +2575,14 @@ def verify_otp():
 
 
     return jsonify({
+
         "success": True,
+
         "message": (
-            "Administrator authentication successful."
+            "Administrator authentication "
+            "successful."
         )
+
     }), 200
 
 
@@ -2169,8 +2605,12 @@ def admin_status():
     )
 
     return jsonify({
+
         "success": True,
-        "authenticated": authenticated
+
+        "authenticated":
+            authenticated
+
     })
 
 
@@ -2202,55 +2642,104 @@ def get_messages():
     if not require_admin():
 
         return jsonify({
+
             "success": False,
-            "message": "Unauthorized."
+
+            "message":
+                "Unauthorized."
+
         }), 401
 
 
-    connection = get_db()
+    connection = None
 
-    rows = connection.execute(
-        """
-        SELECT
-            id,
-            name,
-            email,
-            message,
-            created_at,
-            is_read,
-            ip_address,
-            user_agent
-        FROM messages
-        ORDER BY id DESC
-        """
-    ).fetchall()
+    try:
 
-    connection.close()
+        connection = get_db()
 
+        rows = connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                email,
+                message,
+                created_at,
+                is_read,
+                ip_address,
+                user_agent
+            FROM messages
+            ORDER BY id DESC
+            """
+        ).fetchall()
 
-    messages = []
+        messages = []
 
-    for row in rows:
+        for row in rows:
 
-        messages.append({
-            "id": row["id"],
-            "name": row["name"],
-            "email": row["email"],
-            "message": row["message"],
-            "created_at": row["created_at"],
-            "is_read": bool(
-                row["is_read"]
-            ),
-            "ip_address": row["ip_address"],
-            "user_agent": row["user_agent"]
-        })
+            messages.append({
 
+                "id":
+                    row["id"],
 
-    return jsonify({
-        "success": True,
-        "messages": messages,
-        "count": len(messages)
-    }), 200
+                "name":
+                    row["name"],
+
+                "email":
+                    row["email"],
+
+                "message":
+                    row["message"],
+
+                "created_at":
+                    row["created_at"],
+
+                "is_read":
+                    bool(
+                        row["is_read"]
+                    ),
+
+                "ip_address":
+                    row["ip_address"],
+
+                "user_agent":
+                    row["user_agent"]
+
+            })
+
+        return jsonify({
+
+            "success": True,
+
+            "messages":
+                messages,
+
+            "count":
+                len(messages)
+
+        }), 200
+
+    except sqlite3.Error as error:
+
+        print(
+            "DATABASE ERROR:",
+            error
+        )
+
+        return jsonify({
+
+            "success": False,
+
+            "message":
+                "Unable to retrieve messages."
+
+        }), 500
+
+    finally:
+
+        if connection:
+
+            connection.close()
 
 
 # ============================================================
@@ -2268,44 +2757,80 @@ def mark_message_read(
     if not require_admin():
 
         return jsonify({
+
             "success": False,
-            "message": "Unauthorized."
+
+            "message":
+                "Unauthorized."
+
         }), 401
 
 
-    connection = get_db()
+    connection = None
 
-    cursor = connection.execute(
-        """
-        UPDATE messages
-        SET is_read = 1
-        WHERE id = ?
-        """,
-        (message_id,)
-    )
+    try:
 
-    connection.commit()
+        connection = get_db()
 
-    updated = (
-        cursor.rowcount > 0
-    )
+        cursor = connection.execute(
+            """
+            UPDATE messages
+            SET is_read = 1
+            WHERE id = ?
+            """,
+            (
+                message_id,
+            )
+        )
 
-    connection.close()
+        connection.commit()
+
+        updated = (
+            cursor.rowcount > 0
+        )
+
+    except sqlite3.Error as error:
+
+        print(
+            "DATABASE ERROR:",
+            error
+        )
+
+        return jsonify({
+
+            "success": False,
+
+            "message":
+                "Unable to update message."
+
+        }), 500
+
+    finally:
+
+        if connection:
+
+            connection.close()
 
 
     if not updated:
 
         return jsonify({
+
             "success": False,
-            "message": "Message not found."
+
+            "message":
+                "Message not found."
+
         }), 404
 
 
     return jsonify({
+
         "success": True,
-        "message": (
+
+        "message":
             "Message marked as read."
-        )
+
     }), 200
 
 
@@ -2322,8 +2847,12 @@ def admin_logout():
     session.clear()
 
     return jsonify({
+
         "success": True,
-        "message": "Logged out successfully."
+
+        "message":
+            "Logged out successfully."
+
     }), 200
 
 
@@ -2335,9 +2864,30 @@ def admin_logout():
 def not_found(error):
 
     return jsonify({
+
         "success": False,
-        "message": "Endpoint not found."
+
+        "message":
+            "Endpoint not found."
+
     }), 404
+
+
+# ============================================================
+# 405 HANDLER
+# ============================================================
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+
+    return jsonify({
+
+        "success": False,
+
+        "message":
+            "Method not allowed."
+
+    }), 405
 
 
 # ============================================================
@@ -2347,11 +2897,18 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_server_error(error):
 
+    print(
+        "INTERNAL SERVER ERROR:",
+        error
+    )
+
     return jsonify({
+
         "success": False,
-        "message": (
+
+        "message":
             "Internal server error."
-        )
+
     }), 500
 
 
@@ -2369,7 +2926,11 @@ if __name__ == "__main__":
     )
 
     app.run(
+
         host="0.0.0.0",
+
         port=port,
+
         debug=True
+
     )
